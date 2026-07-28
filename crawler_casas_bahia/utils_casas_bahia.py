@@ -41,48 +41,20 @@ def carregar_termos_busca(caminho_txt: str) -> list[str]:
     return termos
 
 
-def montar_urls_busca(termo: str, pagina: int = 1) -> list[str]:
-    """
-    Fluxo limpo: apenas abre URLs de busca.
-    Não usa barra de busca, autocomplete, topterms ou cliques.
-
-    Mantemos alguns formatos porque o site pode aceitar um e recusar outro.
-    O crawler testa em ordem e usa o primeiro que retornar links.
-    """
-    termo_limpo = re.sub(r"\s+", " ", termo.strip())
-    termo_plus = quote_plus(termo_limpo)
-    termo_slug = quote(re.sub(r"\s+", "-", termo_limpo.lower()), safe="-")
-
-    urls = [
-        f"https://www.casasbahia.com.br/busca?termo={termo_plus}",
-        f"https://www.casasbahia.com.br/busca/{termo_slug}",
-        f"https://www.casasbahia.com.br/s?termo={termo_plus}",
-        f"https://www.casasbahia.com.br/search?term={termo_plus}",
-    ]
-
+def montar_urls_busca(termo: str, pagina: int = 1) -> List[str]:
+    termo_slug = termo.replace(" ", "-")
+    url_base = f"https://www.casasbahia.com.br/busca/{termo_slug}"
     if pagina > 1:
-        urls = [
-            url + ("&" if "?" in url else "?") + f"page={pagina}"
-            for url in urls
-        ]
-
-    return urls
+        return [f"{url_base}?page={pagina}"]
+    return [url_base]
 
 
-def montar_url_busca(termo: str, pagina: int = 1, modo: str = "busca") -> str:
-    """
-    Compatibilidade com versões antigas.
-    """
-    urls = montar_urls_busca(termo, pagina=pagina)
-    mapa = {
-        "busca": 0,
-        "slug": 1,
-        "query": 0,
-        "search": 3,
-        "s": 2,
-    }
-    return urls[mapa.get(modo, 0)]
-
+def montar_urls_busca(termo: str, pagina: int = 1) -> List[str]:
+    termo_formatado = termo.replace(" ", "+")
+    url_base = f"https://www.casasbahia.com.br/s?q={termo_formatado}"
+    if pagina > 1:
+        return [f"{url_base}&page={pagina}"]
+    return [url_base]
 
 def preparar_saida(saida: Path, limpar_prints: bool = False) -> None:
     saida.mkdir(parents=True, exist_ok=True)

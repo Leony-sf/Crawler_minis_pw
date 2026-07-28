@@ -1,2 +1,3 @@
-2026/07/20-11:29:24.199 8680 Creating DB C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\crawler_magalu\perfil_magalu\Default\shared_proto_db\metadata since it was missing.
-2026/07/20-11:29:24.265 8680 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\crawler_magalu\perfil_magalu\Default\shared_proto_db\metadata/MANIFEST-000001
+2026/07/24-09:33:56.215 8998 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\crawler_magalu\perfil_magalu\Default\shared_proto_db\metadata/MANIFEST-000001
+2026/07/24-09:33:56.224 8998 Recovering log #3
+2026/07/24-09:33:56.231 8998 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\crawler_magalu\perfil_magalu\Default\shared_proto_db\metadata/000003.log 

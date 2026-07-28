@@ -61,28 +61,15 @@ def normalizar_url(url: str) -> str:
     return urljoin(BASE_URL, url)
 
 
-def pagina_erro_casas_bahia(page: Page) -> bool:
+def pagina_erro_casas_bahia(page) -> bool:
+    """Verifica se caiu no bloqueio pesado da Akamai (Bonequinho/IP) ignorando erros comuns 404."""
     try:
-        url = (page.url or "").lower()
-        if "origem=topterms" in url:
+        texto = page.locator("body").inner_text(timeout=2000).lower()
+        if "reference id:" in texto and "client ip:" in texto:
             return True
-
-        try:
-            texto = page.locator("body").inner_text(timeout=1200).lower()
-        except Exception:
-            texto = ""
-
-        sinais = [
-            "ops! algo deu errado",
-            "desculpe, não foi possível acessar a página",
-            "alguns detalhes do erro",
-            "reference id:",
-            "client ip:",
-            "ih, ainda não encontramos nada",
-            "tenta usar uma palavra só",
-            "experimente termos mais genéricos",
-        ]
-        return any(sinal in texto for sinal in sinais)
+        if "alguns detalhes do erro:" in texto:
+            return True
+        return False
     except Exception:
         return False
 
@@ -141,21 +128,12 @@ def esperar_carregamento(page: Page, timeout_ms: int = 30000) -> None:
         pass
 
     try:
-        page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 12000))
-    except Exception:
-        pass
-
-    try:
-        page.wait_for_timeout(1600)
+        page.wait_for_timeout(2000)
     except Exception:
         pass
 
 
 def aceitar_cookies_se_aparecer(page: Page) -> None:
-    """
-    Único clique permitido na página de busca.
-    Não mexe em CEP, busca, sugestões, produtos ou outros elementos.
-    """
     seletores = [
         "button:has-text('Aceitar cookies')",
         "button:has-text('Aceitar todos')",
@@ -178,9 +156,6 @@ def aceitar_cookies_se_aparecer(page: Page) -> None:
 
 
 def rolar_busca_sem_clicar(page: Page) -> None:
-    """
-    Rola a página de busca sem clicar em nada.
-    """
     try:
         page.wait_for_timeout(800)
         for _ in range(8):
@@ -333,7 +308,6 @@ def extrair_urls_de_html(html: str) -> List[str]:
 
     return [normalizar_url(candidato) for candidato in candidatos]
 
-
 def coletar_links_por_html(page: Page) -> List[Dict[str, Any]]:
     try:
         html = page.content()
@@ -458,10 +432,6 @@ def extrair_json_ld(page: Page) -> Dict[str, Any]:
 
 
 def abrir_secoes_de_detalhes(page: Page) -> None:
-    """
-    Em produto, evita cliques agressivos.
-    Apenas tenta expandir seções padrão quando existirem.
-    """
     textos = [
         "Ver mais", "Mostrar mais", "Descrição", "Ficha técnica",
         "Características", "Informações do produto", "Detalhes do produto", "Especificações",

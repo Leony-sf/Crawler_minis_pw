@@ -1,0 +1,14 @@
+2026/07/24-09:08:39.401 55f8 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\IndexedDB\https_www.carrefour.com.br_0.indexeddb.leveldb/MANIFEST-000001
+2026/07/24-09:08:39.402 55f8 Recovering log #98
+2026/07/24-09:08:39.404 55f8 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\IndexedDB\https_www.carrefour.com.br_0.indexeddb.leveldb/000098.log 
+2026/07/24-09:08:39.405 55f8 Delete type=2 #96
+2026/07/24-09:08:39.452 cd94 Level-0 table #103: started
+2026/07/24-09:08:39.478 cd94 Level-0 table #103: 1379 bytes OK
+2026/07/24-09:08:39.489 cd94 Delete type=0 #98
+2026/07/24-09:08:39.492 55f8 Manual compaction at level-0 from '\x00 \x00\x00\x00' @ 72057594037927935 : 1 .. '\x00!\x00\x00\x00' @ 0 : 0; will stop at '\x00 \x01\x03\x03\x00\x00\x00\x00\x00\x00\xf0?' @ 2487 : 1
+2026/07/24-09:08:39.495 55f8 Compacting 1@0 + 1@1 files
+2026/07/24-09:08:39.507 55f8 Generated table #104@0: 65 keys, 1489 bytes
+2026/07/24-09:08:39.507 55f8 Compacted 1@0 + 1@1 files => 1489 bytes
+2026/07/24-09:08:39.514 55f8 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/07/24-09:08:39.517 55f8 Delete type=2 #103
+2026/07/24-09:08:39.529 55f8 Manual compaction at level-0 from '\x00 \x01\x03\x03\x00\x00\x00\x00\x00\x00\xf0?' @ 2487 : 1 .. '\x00!\x00\x00\x00' @ 0 : 0; will stop at (end)

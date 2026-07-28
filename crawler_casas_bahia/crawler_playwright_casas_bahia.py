@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Crawler Casas Bahia — fluxo limpo por URL."""
+"""Crawler Casas Bahia — fluxo com Chromium + Stealth (Blindado)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import time
+import random
 import pandas as pd
 from playwright.sync_api import (
     BrowserContext,
@@ -14,6 +16,7 @@ from playwright.sync_api import (
     TimeoutError as PlaywrightTimeoutError,
     sync_playwright,
 )
+from playwright_stealth import stealth_sync
 
 from classificacao_casas_bahia import classificar_produto
 from extracao_casas_bahia import (
@@ -68,6 +71,7 @@ def executar_crawler_casas_bahia(config: ConfigCasasBahia) -> List[Dict[str, Any
     with sync_playwright() as p:
         contexto = _criar_contexto(p, config)
         page = contexto.new_page()
+        stealth_sync(page)  # <-- Aplicando Stealth na página de busca
         page.set_default_timeout(config.timeout_ms)
 
         if config.pausar_inicio:
@@ -75,63 +79,71 @@ def executar_crawler_casas_bahia(config: ConfigCasasBahia) -> List[Dict[str, Any
             print("\n[PAUSA] Verifique cookies/captcha, se aparecer.")
             input("        Pressione ENTER aqui no terminal para iniciar a coleta...")
 
-        for pagina in range(1, config.max_paginas + 1):
-            if total_analisados >= config.limit:
-                break
-
-            _imprimir_secao(f"RODADA DE BUSCA | PÁGINA {pagina}/{config.max_paginas}")
-
-            for idx_termo, termo in enumerate(termos, start=1):
+        try:
+            for pagina in range(1, config.max_paginas + 1):
                 if total_analisados >= config.limit:
                     break
 
-                print(f"\n[BUSCA] Página {pagina}/{config.max_paginas} | Linha {idx_termo}/{len(termos)} do TXT")
-                print(f"        Termo: {termo}")
+                _imprimir_secao(f"RODADA DE BUSCA | PÁGINA {pagina}/{config.max_paginas}")
 
-                cards = _abrir_busca_e_coletar(page, config, termo, pagina)
-                total_cards += len(cards)
-                print(f"        Links candidatos: {len(cards)}")
-
-                if not cards:
-                    continue
-
-                for indice, card in enumerate(cards, start=1):
+                for idx_termo, termo in enumerate(termos, start=1):
                     if total_analisados >= config.limit:
                         break
 
-                    url_produto = card.get("url", "")
-                    if not url_produto or url_produto in visitados:
+                    print(f"\n[BUSCA] Página {pagina}/{config.max_paginas} | Linha {idx_termo}/{len(termos)} do TXT")
+                    print(f"        Termo: {termo}")
+
+                    cards = _abrir_busca_e_coletar(page, config, termo, pagina)
+                    total_cards += len(cards)
+                    print(f"        Links candidatos: {len(cards)}")
+
+                    time.sleep(random.uniform(4.0, 7.5))
+
+                    cards = _abrir_busca_e_coletar(page, config, termo, pagina)
+
+                    if not cards:
                         continue
 
-                    visitados.add(url_produto)
-                    numero_atual = total_analisados + 1
-                    total_analisados += 1
+                    for indice, card in enumerate(cards, start=1):
+                        if total_analisados >= config.limit:
+                            break
 
-                    registro = _processar_produto(
-                        contexto=contexto,
-                        url_produto=url_produto,
-                        card=card,
-                        config=config,
-                        termo=termo,
-                        pagina=pagina,
-                        indice_item=indice,
-                        total_itens=len(cards),
-                        numero_processado=numero_atual,
-                    )
-
-                    if not registro:
-                        total_erros += 1
-                        continue
-
-                    if registro.get("status") == "DESCARTADO":
-                        total_descartados += 1
-                        if not config.salvar_descartados:
+                        url_produto = card.get("url", "")
+                        if not url_produto or url_produto in visitados:
                             continue
 
-                    resultados.append(registro)
-                    _salvar_parquets_incrementais(resultados, config.saida)
+                        visitados.add(url_produto)
+                        numero_atual = total_analisados + 1
+                        total_analisados += 1
 
-        contexto.close()
+                        registro = _processar_produto(
+                            contexto=contexto,
+                            url_produto=url_produto,
+                            card=card,
+                            config=config,
+                            termo=termo,
+                            pagina=pagina,
+                            indice_item=indice,
+                            total_itens=len(cards),
+                            numero_processado=numero_atual,
+                        )
+
+                        if not registro:
+                            total_erros += 1
+                            continue
+
+                        if registro.get("status") == "DESCARTADO":
+                            total_descartados += 1
+                            if not config.salvar_descartados:
+                                continue
+
+                        resultados.append(registro)
+                        _salvar_parquets_incrementais(resultados, config.saida)
+        
+        except KeyboardInterrupt:
+            print("\n[AVISO] Execução interrompida pelo usuário (Ctrl+C)! Salvando progresso...")
+        finally:
+            contexto.close()
 
     _salvar_parquets_incrementais(resultados, config.saida)
     _salvar_resumo(resultados, config, termos, total_cards, total_descartados, total_erros, total_analisados)
@@ -140,33 +152,18 @@ def executar_crawler_casas_bahia(config: ConfigCasasBahia) -> List[Dict[str, Any
 
 
 def _criar_contexto(p, config: ConfigCasasBahia) -> BrowserContext:
-    """
-    Perfil persistente para manter cookies/sessão, mas sem cliques ou automações na tela.
-    """
+    print("[INFO] Iniciando Chrome nativo pelo Playwright...")
     config.perfil.mkdir(parents=True, exist_ok=True)
-
-    args = [
-        "--disable-blink-features=AutomationControlled",
-        "--disable-infobars",
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--start-maximized",
-    ]
-
-    opcoes = dict(
+    
+    return p.chromium.launch_persistent_context(
         user_data_dir=str(config.perfil.resolve()),
         headless=config.headless,
         slow_mo=config.slow_mo,
         viewport={"width": 1366, "height": 900},
         locale="pt-BR",
-        args=args,
+        args=["--disable-blink-features=AutomationControlled"],
+        ignore_default_args=["--enable-automation"]
     )
-
-    try:
-        return p.chromium.launch_persistent_context(channel="chrome", **opcoes)
-    except Exception:
-        print("[AVISO] Chrome do sistema não abriu. Usando Chromium do Playwright com perfil persistente.")
-        return p.chromium.launch_persistent_context(**opcoes)
 
 
 def _abrir_home_para_pausa(page: Page, config: ConfigCasasBahia) -> None:
@@ -177,7 +174,6 @@ def _abrir_home_para_pausa(page: Page, config: ConfigCasasBahia) -> None:
         aceitar_cookies_se_aparecer(page)
     except Exception as exc:
         print(f"        Aviso: não foi possível abrir a página inicial: {_texto_curto(str(exc), 120)}")
-
 
 
 def _localizar_campo_busca(page: Page):
@@ -199,7 +195,6 @@ def _localizar_campo_busca(page: Page):
                 return campo
         except Exception:
             continue
-
     return None
 
 
@@ -222,19 +217,10 @@ def _acionar_botao_busca(page: Page) -> bool:
                 return True
         except Exception:
             continue
-
     return False
 
 
 def _buscar_pela_caixa_organizada(page: Page, config: ConfigCasasBahia, termo: str) -> List[Dict[str, Any]]:
-    """
-    Fallback organizado:
-    - usa somente a caixa de busca visível;
-    - não clica aleatoriamente;
-    - não aceita autocomplete/topterms;
-    - não clica em produto;
-    - depois só coleta links.
-    """
     try:
         campo = _localizar_campo_busca(page)
         if campo is None:
@@ -244,7 +230,6 @@ def _buscar_pela_caixa_organizada(page: Page, config: ConfigCasasBahia, termo: s
         page.keyboard.press("Control+A")
         page.keyboard.type(termo, delay=35)
 
-        # Fecha sugestões/autocomplete antes de confirmar.
         try:
             page.keyboard.press("Escape")
         except Exception:
@@ -260,7 +245,8 @@ def _buscar_pela_caixa_organizada(page: Page, config: ConfigCasasBahia, termo: s
         page.wait_for_timeout(900)
 
         if pagina_erro_casas_bahia(page):
-            return []
+            print("\n🚨 [BLOQUEIO NA BUSCA] Resolva o Captcha na janela do Chrome aberta.")
+            input("🚨 Pressione [ENTER] aqui APÓS a página de resultados carregar normalmente...")
 
         return coletar_links_resultados(page)
 
@@ -280,13 +266,6 @@ def _buscar_pela_home_organizada(page: Page, config: ConfigCasasBahia, termo: st
 
 
 def _abrir_busca_e_coletar(page: Page, config: ConfigCasasBahia, termo: str, pagina: int) -> List[Dict[str, Any]]:
-    """
-    Fluxo híbrido organizado:
-    1. tenta URLs de busca;
-    2. se cair na tela do bonequinho/sem resultado, usa a caixa de busca dessa tela;
-    3. se ainda não der, usa a caixa da home;
-    4. depois da página de resultado, apenas scrolla e coleta links.
-    """
     for url_busca in montar_urls_busca(termo, pagina=pagina):
         try:
             print(f"        URL: {url_busca}")
@@ -294,13 +273,10 @@ def _abrir_busca_e_coletar(page: Page, config: ConfigCasasBahia, termo: str, pag
             esperar_carregamento(page, timeout_ms=config.timeout_ms)
             aceitar_cookies_se_aparecer(page)
 
-            # Se a URL cair na tela do bonequinho, usa a busca visível da própria tela.
             if pagina_erro_casas_bahia(page):
-                print("        Aviso: URL caiu em tela sem resultado/erro. Tentando caixa de busca organizada...")
-                cards = _buscar_pela_caixa_organizada(page, config, termo)
-                if cards:
-                    return cards
-                continue
+                print("\n🚨 [BLOQUEIO NA BUSCA] O site travou a requisição.")
+                print("🚨 Vá na janela do Chrome e resolva o CAPTCHA ou recarregue a página.")
+                input("🚨 Pressione [ENTER] aqui no terminal APÓS carregar os resultados...")
 
             cards = coletar_links_resultados(page)
             if cards:
@@ -317,7 +293,6 @@ def _abrir_busca_e_coletar(page: Page, config: ConfigCasasBahia, termo: str, pag
         except Exception as exc:
             print(f"        Erro na busca: {_texto_curto(str(exc), 120)}")
 
-    # Último fallback organizado: home -> campo de busca -> resultado -> scroll/coleta.
     print("        Fallback: tentando buscar pela caixa da home, sem autocomplete/topterms...")
     return _buscar_pela_home_organizada(page, config, termo)
 
@@ -336,17 +311,47 @@ def _processar_produto(
     page: Optional[Page] = None
 
     try:
+        # Pega os cookies atuais do contexto e injeta na nova aba para manter a sessão humana
+        cookies_atuais = contexto.cookies()
         page = contexto.new_page()
+        page.context.add_cookies(cookies_atuais)
+        
         page.set_default_timeout(config.timeout_ms)
 
-        page.goto(url_produto, wait_until="domcontentloaded", timeout=config.timeout_ms)
+        # Respiro humano antes de navegar para o produto
+        time.sleep(random.uniform(2.0, 4.0))
+
+        page.goto(
+            url_produto, 
+            referer="https://www.casasbahia.com.br/",
+            wait_until="commit", 
+            timeout=config.timeout_ms
+        )
+        
+        # Pausa para o servidor respirar antes de rodar os seletores
+        time.sleep(random.uniform(1.5, 3.0))
         esperar_carregamento(page, timeout_ms=config.timeout_ms)
 
+        # Auto-Recuperação: Tenta dar F5 até 3 vezes se cair na tela de erro
+        tentativas_f5 = 0
+        while pagina_erro_casas_bahia(page) and tentativas_f5 < 3:
+            print(f"\n[AUTO-RECUPERAÇÃO] Bloqueio detectado. Tentativa {tentativas_f5 + 1} de recarregar a página (F5)...")
+            time.sleep(random.uniform(4.0, 8.0))
+            page.reload(wait_until="commit", timeout=config.timeout_ms)
+            esperar_carregamento(page, timeout_ms=config.timeout_ms)
+            tentativas_f5 += 1
+
+        # Mecanismo de Pausa Inteligente caso o F5 automático falhe
         if pagina_erro_casas_bahia(page):
-            registro_erro = _registro_erro_timeout(url_produto, card, termo, pagina, indice_item)
-            registro_erro["motivo"] = "Página de erro das Casas Bahia ao abrir produto."
-            _imprimir_produto(registro_erro, numero_processado, config.limit, indice_item, total_itens)
-            return registro_erro
+            print("\n🚨 [BLOQUEIO PERSISTENTE] Site limitou o acesso rápido.")
+            print("🚨 Vá na janela do Chrome aberta, resolva o desafio ou recarregue manualmente.")
+            input("🚨 Pressione [ENTER] aqui no terminal DEPOIS que o produto estiver na tela para continuar...")
+            
+            if pagina_erro_casas_bahia(page):
+                registro_erro = _registro_erro_timeout(url_produto, card, termo, pagina, indice_item)
+                registro_erro["motivo"] = "Página de erro persistente mesmo após F5 e pausa manual."
+                _imprimir_produto(registro_erro, numero_processado, config.limit, indice_item, total_itens)
+                return registro_erro
 
         produto = extrair_produto(page, url_produto, card)
         classificacao = classificar_produto(produto)
@@ -382,6 +387,15 @@ def _processar_produto(
             )
 
         _imprimir_produto(registro, numero_processado, config.limit, indice_item, total_itens)
+        
+        # Atraso aleatório longo e realista
+        time.sleep(random.uniform(4.5, 12.8))
+
+        # Respiro longo em lotes para esfriar o IP a cada 10 produtos
+        if numero_processado % 10 == 0:
+            print(f"\n[RESPIRO] Lote de {numero_processado} atingido. Pausa longa (30 a 50s) para esfriar o IP...")
+            time.sleep(random.uniform(30.0, 50.0))
+            
         return registro
 
     except PlaywrightTimeoutError:
@@ -399,7 +413,6 @@ def _processar_produto(
                 page.close()
             except Exception:
                 pass
-
 
 def _registro_erro_timeout(url_produto: str, card: Dict[str, Any], termo: str, pagina: int, indice_item: int) -> Dict[str, Any]:
     return {

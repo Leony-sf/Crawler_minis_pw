@@ -1,18 +1,18 @@
 Resumo da coleta Casas Bahia
 ==============================
-Data/hora: 2026-07-17T15:07:22
+Data/hora: 2026-07-27T12:20:15
 Fluxo: URL de busca -> scroll sem clique -> coleta links -> abre produto por URL -> análise.
 Regra aplicada: celular com maior dimensão física <= 80 mm = IRREGULAR; acima de 80 até 90 mm = SUSPEITO
 Termos de busca: mini celular, celular simples, telefone celular simples, celular dual chip pequeno, ponto eletrônico celular
-Páginas por termo: 1
-Limite configurado: 7
-Produtos analisados nesta execução: 7
-Links candidatos em páginas de busca: 20
+Páginas por termo: 10
+Limite configurado: 100
+Produtos analisados nesta execução: 0
+Links candidatos em páginas de busca: 0
 Registros salvos no products.parquet: 0
 Irregulares por dimensão <= 80 mm: 0
 Suspeitos por dimensão próxima (>80 até 90 mm): 0
 Celulares sem medida física capturada: 0
-Descartados não salvos: 7
+Descartados não salvos: 0
 Erros/timeout: 0
 
 Contagem por status:
