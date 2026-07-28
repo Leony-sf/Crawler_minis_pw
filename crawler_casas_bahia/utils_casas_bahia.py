@@ -41,15 +41,7 @@ def carregar_termos_busca(caminho_txt: str) -> list[str]:
     return termos
 
 
-def montar_urls_busca(termo: str, pagina: int = 1) -> List[str]:
-    termo_slug = termo.replace(" ", "-")
-    url_base = f"https://www.casasbahia.com.br/busca/{termo_slug}"
-    if pagina > 1:
-        return [f"{url_base}?page={pagina}"]
-    return [url_base]
-
-
-def montar_urls_busca(termo: str, pagina: int = 1) -> List[str]:
+def montar_urls_busca(termo: str, pagina: int = 1) -> list[str]:
     termo_formatado = termo.replace(" ", "+")
     url_base = f"https://www.casasbahia.com.br/s?q={termo_formatado}"
     if pagina > 1:
