@@ -1382,7 +1382,7 @@ def rodar_playwright_shopee(
     max_paginas: int = 3,
     queries: list[str] | None = None,
     mini_celulares: bool = False,
-    mini_maior_cm: float = 8.5,
+    mini_maior_cm: float = 12.0,
     mini_largura_cm: float = 5.5,
     mini_manter_sem_medida: bool = False,
 ) -> dict[str, Any]:

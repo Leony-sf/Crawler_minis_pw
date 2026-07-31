@@ -935,7 +935,7 @@ def analisar_suspeito_mini_celular(dados: dict[str, Any]) -> tuple[bool, str]:
 
 def analisar_mini_celular(
     dados: dict[str, Any],
-    maior_max_cm: float = 8.5,
+    maior_max_cm: float = 12.0,
     largura_max_cm: float = 5.5,
 ) -> dict[str, Any]:
     """Classifica produto no recorte de mini celulares da Shopee.

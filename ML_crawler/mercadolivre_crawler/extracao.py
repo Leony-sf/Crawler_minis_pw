@@ -384,7 +384,7 @@ def _base_retorno_mini(maior_max_cm: float, largura_max_cm: float) -> dict[str, 
 
 def analisar_mini_celular(
     dados: DadosProduto,
-    maior_max_cm: float = 8.5,
+    maior_max_cm: float = 12.0,
     largura_max_cm: float = 5.5,
 ) -> dict[str, Any]:
     """A nova lógica simplificada de captura."""

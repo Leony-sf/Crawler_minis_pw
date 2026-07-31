@@ -60,7 +60,7 @@ def main():
     parser.add_argument(
         "--mini-maior-cm", 
         type=float, 
-        default=8.5, 
+        default=12.0, 
         help="Tamanho máximo tolerado para o maior eixo em cm (padrão: 8.5)"
     )
     parser.add_argument(

@@ -82,7 +82,7 @@ def parse_args():
         "--mini-maior-eixo-cm",
         dest="mini_maior_cm",
         type=float,
-        default=8.5,
+        default=12.0,
         help="Maior eixo permitido para mini celular em centímetros. Padrão: 8,5 cm.",
     )
 

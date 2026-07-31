@@ -400,7 +400,7 @@ def rodar_playwright_mercadolivre(
     saida: str | Path | None = None,
     max_paginas: int = 0,
     mini_celulares: bool = False,
-    mini_maior_cm: float = 8.5,
+    mini_maior_cm: float = 12.0,
     mini_largura_cm: float = 5.5,
     mini_manter_sem_medida: bool = False,
     somente_internacional: bool = False, # <-- NOVA FLAG DE IMPORTAÇÃO
