@@ -1,0 +1,11 @@
+# Dependências do crawler Mercado Livre
+# Instalação:
+#   python -m pip install -r requirements_ML.txt
+#
+# Após instalar, execute uma vez:
+#   python -m playwright install chromium
+
+playwright>=1.45
+pandas>=2.2
+pyarrow>=16.0
+openpyxl>=3.1
