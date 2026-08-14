@@ -1,112 +1,31 @@
-2026/07/22-11:51:09.165 1e18 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/MANIFEST-000001
-2026/07/22-11:51:09.189 1e18 Recovering log #249
-2026/07/22-11:51:09.190 1e18 Level-0 table #252: started
-2026/07/22-11:51:09.231 1e18 Level-0 table #252: 40308 bytes OK
-2026/07/22-11:51:09.250 1e18 Recovering log #251
-2026/07/22-11:51:09.276 1e18 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/000251.log 
-2026/07/22-11:51:09.289 1e18 Delete type=0 #249
-2026/07/22-11:52:09.336 85f0 Level-0 table #254: started
-2026/07/22-11:52:09.361 85f0 Level-0 table #254: 122933 bytes OK
-2026/07/22-11:52:09.373 85f0 Delete type=0 #251
-2026/07/22-11:53:04.972 85f0 Level-0 table #256: started
-2026/07/22-11:53:05.018 85f0 Level-0 table #256: 105959 bytes OK
-2026/07/22-11:53:05.058 85f0 Delete type=0 #253
-2026/07/22-11:53:05.062 85f0 Compacting 4@0 + 1@1 files
-2026/07/22-11:53:05.104 85f0 Generated table #257@0: 85 keys, 297398 bytes
-2026/07/22-11:53:05.104 85f0 Compacted 4@0 + 1@1 files => 297398 bytes
-2026/07/22-11:53:05.146 85f0 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/07/22-11:53:05.148 85f0 Delete type=2 #248
-2026/07/22-11:53:05.148 85f0 Delete type=2 #250
-2026/07/22-11:53:05.148 85f0 Delete type=2 #252
-2026/07/22-11:53:05.149 85f0 Delete type=2 #254
-2026/07/22-11:53:05.149 85f0 Delete type=2 #256
-2026/07/22-11:53:10.713 85f0 Level-0 table #259: started
-2026/07/22-11:53:10.744 85f0 Level-0 table #259: 104725 bytes OK
-2026/07/22-11:53:10.760 85f0 Delete type=0 #255
-2026/07/22-11:53:17.272 85f0 Level-0 table #261: started
-2026/07/22-11:53:17.305 85f0 Level-0 table #261: 146954 bytes OK
-2026/07/22-11:53:17.316 85f0 Delete type=0 #258
-2026/07/22-11:53:23.618 85f0 Level-0 table #263: started
-2026/07/22-11:53:23.677 85f0 Level-0 table #263: 104725 bytes OK
-2026/07/22-11:53:23.705 85f0 Delete type=0 #260
-2026/07/22-11:53:31.347 85f0 Level-0 table #265: started
-2026/07/22-11:53:31.375 85f0 Level-0 table #265: 104692 bytes OK
-2026/07/22-11:53:31.391 85f0 Delete type=0 #262
-2026/07/22-11:53:31.395 85f0 Compacting 4@0 + 1@1 files
-2026/07/22-11:53:31.425 85f0 Generated table #266@0: 85 keys, 297316 bytes
-2026/07/22-11:53:31.425 85f0 Compacted 4@0 + 1@1 files => 297316 bytes
-2026/07/22-11:53:31.435 85f0 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/07/22-11:53:31.436 85f0 Delete type=2 #257
-2026/07/22-11:53:31.436 85f0 Delete type=2 #259
-2026/07/22-11:53:31.437 85f0 Delete type=2 #261
-2026/07/22-11:53:31.437 85f0 Delete type=2 #263
-2026/07/22-11:53:31.437 85f0 Delete type=2 #265
-2026/07/22-11:53:38.028 85f0 Level-0 table #268: started
-2026/07/22-11:53:38.062 85f0 Level-0 table #268: 104720 bytes OK
-2026/07/22-11:53:38.080 85f0 Delete type=0 #264
-2026/07/22-11:54:11.890 85f0 Level-0 table #270: started
-2026/07/22-11:54:11.919 85f0 Level-0 table #270: 104834 bytes OK
-2026/07/22-11:54:11.930 85f0 Delete type=0 #267
-2026/07/22-11:55:11.893 85f0 Level-0 table #272: started
-2026/07/22-11:55:11.946 85f0 Level-0 table #272: 40878 bytes OK
-2026/07/22-11:55:11.969 85f0 Delete type=0 #269
-2026/07/22-11:56:11.904 85f0 Level-0 table #274: started
-2026/07/22-11:56:11.947 85f0 Level-0 table #274: 40804 bytes OK
-2026/07/22-11:56:11.959 85f0 Delete type=0 #271
-2026/07/22-11:56:11.964 85f0 Compacting 4@0 + 1@1 files
-2026/07/22-11:56:12.004 85f0 Generated table #275@0: 85 keys, 213817 bytes
-2026/07/22-11:56:12.004 85f0 Compacted 4@0 + 1@1 files => 213817 bytes
-2026/07/22-11:56:12.018 85f0 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/07/22-11:56:12.020 85f0 Delete type=2 #266
-2026/07/22-11:56:12.020 85f0 Delete type=2 #268
-2026/07/22-11:56:12.020 85f0 Delete type=2 #270
-2026/07/22-11:56:12.021 85f0 Delete type=2 #272
-2026/07/22-11:56:12.021 85f0 Delete type=2 #274
-2026/07/22-11:58:10.747 85f0 Level-0 table #277: started
-2026/07/22-11:58:10.813 85f0 Level-0 table #277: 124716 bytes OK
-2026/07/22-11:58:10.833 85f0 Delete type=0 #273
-2026/07/22-11:59:45.366 85f0 Level-0 table #279: started
-2026/07/22-11:59:45.402 85f0 Level-0 table #279: 39803 bytes OK
-2026/07/22-11:59:45.414 85f0 Delete type=0 #276
-2026/07/22-12:01:11.887 85f0 Level-0 table #281: started
-2026/07/22-12:01:11.919 85f0 Level-0 table #281: 41777 bytes OK
-2026/07/22-12:01:11.931 85f0 Delete type=0 #278
-2026/07/22-12:01:20.039 85f0 Level-0 table #283: started
-2026/07/22-12:01:20.063 85f0 Level-0 table #283: 149564 bytes OK
-2026/07/22-12:01:20.066 85f0 Delete type=0 #280
-2026/07/22-12:01:20.074 85f0 Compacting 4@0 + 1@1 files
-2026/07/22-12:01:20.115 85f0 Generated table #284@0: 85 keys, 341914 bytes
-2026/07/22-12:01:20.115 85f0 Compacted 4@0 + 1@1 files => 341914 bytes
-2026/07/22-12:01:20.116 85f0 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/07/22-12:01:20.118 85f0 Delete type=2 #275
-2026/07/22-12:01:20.119 85f0 Delete type=2 #277
-2026/07/22-12:01:20.119 85f0 Delete type=2 #279
-2026/07/22-12:01:20.119 85f0 Delete type=2 #281
-2026/07/22-12:01:20.119 85f0 Delete type=2 #283
-2026/07/22-12:02:11.897 85f0 Level-0 table #286: started
-2026/07/22-12:02:11.946 85f0 Level-0 table #286: 105258 bytes OK
-2026/07/22-12:02:11.970 85f0 Delete type=0 #282
-2026/07/22-12:03:11.887 85f0 Level-0 table #288: started
-2026/07/22-12:03:11.920 85f0 Level-0 table #288: 46485 bytes OK
-2026/07/22-12:03:11.936 85f0 Delete type=0 #285
-2026/07/22-12:04:29.340 85f0 Level-0 table #290: started
-2026/07/22-12:04:29.359 85f0 Level-0 table #290: 42384 bytes OK
-2026/07/22-12:04:29.362 85f0 Delete type=0 #287
-2026/07/22-12:04:56.338 85f0 Level-0 table #292: started
-2026/07/22-12:04:56.392 85f0 Level-0 table #292: 46131 bytes OK
-2026/07/22-12:04:56.416 85f0 Delete type=0 #289
-2026/07/22-12:04:56.423 85f0 Compacting 4@0 + 1@1 files
-2026/07/22-12:04:56.472 85f0 Generated table #293@0: 85 keys, 214584 bytes
-2026/07/22-12:04:56.472 85f0 Compacted 4@0 + 1@1 files => 214584 bytes
-2026/07/22-12:04:56.511 85f0 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/07/22-12:04:56.512 85f0 Delete type=2 #284
-2026/07/22-12:04:56.512 85f0 Delete type=2 #286
-2026/07/22-12:04:56.512 85f0 Delete type=2 #288
-2026/07/22-12:04:56.512 85f0 Delete type=2 #290
-2026/07/22-12:04:56.513 85f0 Delete type=2 #292
-2026/07/22-12:05:23.329 85f0 Level-0 table #295: started
-2026/07/22-12:05:23.367 85f0 Level-0 table #295: 170524 bytes OK
-2026/07/22-12:05:23.378 85f0 Delete type=0 #291
-2026/07/22-12:06:08.022 85f0 Level-0 table #297: started
-2026/07/22-12:06:08.053 85f0 Level-0 table #297: 42802 bytes OK
-2026/07/22-12:06:08.067 85f0 Delete type=0 #294
+2026/08/14-15:36:00.893 3c74 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/14-15:36:00.916 3c74 Recovering log #386
+2026/08/14-15:36:00.917 3c74 Level-0 table #391: started
+2026/08/14-15:36:00.951 3c74 Level-0 table #391: 103692 bytes OK
+2026/08/14-15:36:00.962 3c74 Recovering log #389
+2026/08/14-15:36:00.985 3c74 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/000389.log 
+2026/08/14-15:36:00.987 3c74 Delete type=0 #386
+2026/08/14-15:36:57.844 a68c Level-0 table #393: started
+2026/08/14-15:36:57.871 a68c Level-0 table #393: 103765 bytes OK
+2026/08/14-15:36:57.875 a68c Delete type=0 #389
+2026/08/14-15:37:01.019 a68c Level-0 table #395: started
+2026/08/14-15:37:01.035 a68c Level-0 table #395: 103455 bytes OK
+2026/08/14-15:37:01.037 a68c Delete type=0 #392
+2026/08/14-15:37:35.662 a68c Level-0 table #397: started
+2026/08/14-15:37:35.682 a68c Level-0 table #397: 146759 bytes OK
+2026/08/14-15:37:35.687 a68c Delete type=0 #394
+2026/08/14-15:37:35.692 a68c Compacting 4@0 + 1@1 files
+2026/08/14-15:37:35.721 a68c Generated table #398@0: 88 keys, 349218 bytes
+2026/08/14-15:37:35.721 a68c Compacted 4@0 + 1@1 files => 349218 bytes
+2026/08/14-15:37:35.723 a68c compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/14-15:37:35.725 a68c Delete type=2 #388
+2026/08/14-15:37:35.725 a68c Delete type=2 #391
+2026/08/14-15:37:35.726 a68c Delete type=2 #393
+2026/08/14-15:37:35.726 a68c Delete type=2 #395
+2026/08/14-15:37:35.726 a68c Delete type=2 #397
+2026/08/14-15:38:02.597 a68c Level-0 table #400: started
+2026/08/14-15:38:02.628 a68c Level-0 table #400: 103708 bytes OK
+2026/08/14-15:38:02.630 a68c Delete type=0 #396
+2026/08/14-15:38:24.100 a68c Level-0 table #402: started
+2026/08/14-15:38:24.126 a68c Level-0 table #402: 103442 bytes OK
+2026/08/14-15:38:24.130 a68c Delete type=0 #399

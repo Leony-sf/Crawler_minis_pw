@@ -1,5 +1,0 @@
-total_produtos: 100
-irregulares: 72
-revisar: 9
-descartados: 19
-sem_medidas: 67

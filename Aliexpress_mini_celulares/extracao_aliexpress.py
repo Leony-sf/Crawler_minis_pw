@@ -1,28 +1,16 @@
-"""
-Regras de extração/classificação para anúncios do AliExpress.
-
-Objetivo: manter na análise anúncios com indício de mini celular, celular pequeno,
-Dual SIM, tela pequena, aceita chip/SIM, Bluetooth dialer ou dimensões próximas
-às propostas. Produtos candidatos sem medidas também entram como suspeitos.
-"""
-
 from __future__ import annotations
-
 import re
 import unicodedata
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-
 LIMITE_COMPRIMENTO_CM = 12.0
 LIMITE_LARGURA_CM = 5.5
 MARGEM_PROXIMA_CM = 1.0
 
-# Lista ampliada para cortar pela raiz
 MARCAS_GRANDES = {
     "apple", "iphone", "samsung", "galaxy", "motorola", "xiaomi", "redmi", "poco","huawei", "nokia", "lg", "sony", "asus",
-    "lenovo","google",
-    "blackberry"
+    "lenovo","google", "blackberry"
 }
 
 TERMOS_CELULAR = {
@@ -58,7 +46,6 @@ TERMOS_ACESSORIO = {
     "camera lens", "film", "skin", "sticker", "adesivo", "bag", "bolsa",
 }
 
-
 @dataclass
 class DimensaoEncontrada:
     bruto: str
@@ -78,7 +65,6 @@ class DimensaoEncontrada:
             return valores[0], valores[0]
         return 999.0, 999.0
 
-
 @dataclass
 class ResultadoClassificacao:
     status: str
@@ -93,7 +79,6 @@ class ResultadoClassificacao:
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
-
 def normalizar_texto(texto: Optional[str]) -> str:
     if not texto:
         return ""
@@ -103,10 +88,8 @@ def normalizar_texto(texto: Optional[str]) -> str:
     texto = re.sub(r"\s+", " ", texto)
     return texto.strip()
 
-
 def contem_termo(texto_norm: str, termos: Iterable[str]) -> bool:
     return any(normalizar_texto(t) in texto_norm for t in termos)
-
 
 def termos_presentes(texto_norm: str, termos: Iterable[str]) -> List[str]:
     achados = []
@@ -116,10 +99,8 @@ def termos_presentes(texto_norm: str, termos: Iterable[str]) -> List[str]:
             achados.append(termo)
     return achados
 
-
 def _num(valor: str) -> float:
     return float(valor.replace(",", "."))
-
 
 def _converter_para_cm(valor: float, unidade: str) -> float:
     unidade = unidade.lower().strip()
@@ -129,21 +110,17 @@ def _converter_para_cm(valor: float, unidade: str) -> float:
         return valor * 2.54
     return valor
 
-
 def extrair_dimensoes(texto: str) -> List[DimensaoEncontrada]:
     if not texto:
         return []
-
     t = normalizar_texto(texto)
     achados: List[DimensaoEncontrada] = []
-
     padrao_unidade_final = re.compile(
         r"(?P<a>\d{1,3}(?:[\.,]\d+)?)\s*(?:x|\*|×|by)\s*"
         r"(?P<b>\d{1,3}(?:[\.,]\d+)?)"
         r"(?:\s*(?:x|\*|×|by)\s*(?P<c>\d{1,3}(?:[\.,]\d+)?))?\s*"
         r"(?P<u>cm|mm|in|inch|inches|\")\b"
     )
-
     padrao_unidade_por_lado = re.compile(
         r"(?P<a>\d{1,3}(?:[\.,]\d+)?)\s*(?P<ua>cm|mm|in|inch|inches|\")\s*"
         r"(?:x|\*|×|by)\s*"
@@ -167,9 +144,7 @@ def extrair_dimensoes(texto: str) -> List[DimensaoEncontrada]:
             bruto = m.group(0)
             if not any(abs(d.comprimento_cm - a) < 0.01 and abs(d.largura_cm - b) < 0.01 for d in achados):
                 achados.append(DimensaoEncontrada(bruto, a, b, c))
-
     return achados
-
 
 def _dimensao_fisica_plausivel(a: float, b: float, c: Optional[float]) -> bool:
     valores = [v for v in [a, b, c] if v is not None]
@@ -179,12 +154,10 @@ def _dimensao_fisica_plausivel(a: float, b: float, c: Optional[float]) -> bool:
         return False
     return True
 
-
 def medida_menor_ou_proxima(dimensao: DimensaoEncontrada) -> Tuple[bool, str]:
     lado1, lado2 = dimensao.menores_dois_lados
     limite1 = LIMITE_LARGURA_CM
     limite2 = LIMITE_COMPRIMENTO_CM
-
     menor_que_proposta = lado1 <= limite1 and lado2 <= limite2
     proxima = lado1 <= (limite1 + MARGEM_PROXIMA_CM) and lado2 <= (limite2 + MARGEM_PROXIMA_CM)
 
@@ -193,7 +166,6 @@ def medida_menor_ou_proxima(dimensao: DimensaoEncontrada) -> Tuple[bool, str]:
     if proxima:
         return True, f"medida próxima à proposta ({lado2:.1f} x {lado1:.1f} cm)"
     return False, f"medida encontrada fora do perfil ({lado2:.1f} x {lado1:.1f} cm)"
-
 
 def classificar_produto(produto: Dict[str, Any], manter_brinquedos: bool = False) -> ResultadoClassificacao:
     titulo = produto.get("titulo") or produto.get("title") or ""
@@ -216,37 +188,25 @@ def classificar_produto(produto: Dict[str, Any], manter_brinquedos: bool = False
     tem_celular = bool(celular_terms)
     tem_funcional = bool(funcionais)
     acessorio = contem_termo(titulo_norm, TERMOS_ACESSORIO) and not (tem_mini and tem_funcional)
-    
-    # CORREÇÃO: Buscar marcas grandes apenas no título do anúncio
     marca_grande = contem_termo(titulo_norm, MARCAS_GRANDES)
 
     dimensoes = extrair_dimensoes(texto_total)
     possui_medida = bool(dimensoes)
 
-    # REGRA 1: Descarte imediato de Marcas Grandes (Xiaomi, Samsung, etc)
     if marca_grande:
         return ResultadoClassificacao(
-            status="DESCARTADO",
-            manter=False,
-            suspeito=False,
+            status="DESCARTADO", manter=False, suspeito=False,
             motivo="marca de smartphone comum detectada (ex: Xiaomi, Samsung, Apple)",
-            categoria_print="descartados/marcas_grandes",
-            possui_medida=possui_medida,
-            dimensoes=[asdict(d) for d in dimensoes],
-            termos_encontrados=termos,
+            categoria_print="", possui_medida=possui_medida,
+            dimensoes=[asdict(d) for d in dimensoes], termos_encontrados=termos,
         )
 
-    # REGRA 2: Descarte de Acessórios (Capinhas, películas, etc)
     if acessorio:
         return ResultadoClassificacao(
-            status="DESCARTADO",
-            manter=False,
-            suspeito=False,
+            status="DESCARTADO", manter=False, suspeito=False,
             motivo="aparenta ser acessório/peça, não aparelho celular",
-            categoria_print="descartados/acessorios",
-            possui_medida=possui_medida,
-            dimensoes=[asdict(d) for d in dimensoes],
-            termos_encontrados=termos,
+            categoria_print="", possui_medida=possui_medida,
+            dimensoes=[asdict(d) for d in dimensoes], termos_encontrados=termos,
         )
 
     candidato = tem_mini or (tem_celular and tem_funcional)
@@ -262,46 +222,29 @@ def classificar_produto(produto: Dict[str, Any], manter_brinquedos: bool = False
 
             if suspeito_por_dim:
                 return ResultadoClassificacao(
-                    status="IRREGULAR",
-                    manter=True,
-                    suspeito=True,
+                    status="IRREGULAR", manter=True, suspeito=True,
                     motivo="; ".join(motivos_dim),
-                    categoria_print="irregulares/mini_celulares",
-                    possui_medida=True,
-                    dimensoes=[asdict(d) for d in dimensoes],
-                    termos_encontrados=termos,
+                    categoria_print="irregulares", possui_medida=True,
+                    dimensoes=[asdict(d) for d in dimensoes], termos_encontrados=termos,
                 )
             
             return ResultadoClassificacao(
-                status="REVISAR",
-                manter=True,
-                suspeito=True,
+                status="SUSPEITO", manter=True, suspeito=True,
                 motivo="candidato forte a mini celular, mas medida encontrada não ficou abaixo/próxima do limite: " + "; ".join(motivos_dim),
-                categoria_print="irregulares/revisar_medidas",
-                possui_medida=True,
-                dimensoes=[asdict(d) for d in dimensoes],
-                termos_encontrados=termos,
+                categoria_print="suspeitos", possui_medida=True,
+                dimensoes=[asdict(d) for d in dimensoes], termos_encontrados=termos,
             )
-            
         else:
             return ResultadoClassificacao(
-                status="IRREGULAR",
-                manter=True,
-                suspeito=True,
-                motivo="candidato forte a mini celular/celular pequeno (termos presentes) sem medidas informadas.",
-                categoria_print="irregulares/sem_medidas",
-                possui_medida=False,
-                dimensoes=[],
-                termos_encontrados=termos,
+                status="SUSPEITO", manter=True, suspeito=True,
+                motivo="candidato forte a mini celular/celular pequeno sem medidas informadas.",
+                categoria_print="suspeitos", possui_medida=False,
+                dimensoes=[], termos_encontrados=termos,
             )
 
     return ResultadoClassificacao(
-        status="DESCARTADO",
-        manter=False,
-        suspeito=False,
+        status="DESCARTADO", manter=False, suspeito=False,
         motivo="sem indício rigoroso de mini celular/funções de rede",
-        categoria_print="descartados/fora_do_escopo",
-        possui_medida=possui_medida,
-        dimensoes=[asdict(d) for d in dimensoes],
-        termos_encontrados=termos,
+        categoria_print="", possui_medida=possui_medida,
+        dimensoes=[asdict(d) for d in dimensoes], termos_encontrados=termos,
     )
