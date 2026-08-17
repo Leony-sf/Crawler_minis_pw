@@ -1,31 +1,27 @@
-2026/08/14-15:36:00.893 3c74 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/MANIFEST-000001
-2026/08/14-15:36:00.916 3c74 Recovering log #386
-2026/08/14-15:36:00.917 3c74 Level-0 table #391: started
-2026/08/14-15:36:00.951 3c74 Level-0 table #391: 103692 bytes OK
-2026/08/14-15:36:00.962 3c74 Recovering log #389
-2026/08/14-15:36:00.985 3c74 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/000389.log 
-2026/08/14-15:36:00.987 3c74 Delete type=0 #386
-2026/08/14-15:36:57.844 a68c Level-0 table #393: started
-2026/08/14-15:36:57.871 a68c Level-0 table #393: 103765 bytes OK
-2026/08/14-15:36:57.875 a68c Delete type=0 #389
-2026/08/14-15:37:01.019 a68c Level-0 table #395: started
-2026/08/14-15:37:01.035 a68c Level-0 table #395: 103455 bytes OK
-2026/08/14-15:37:01.037 a68c Delete type=0 #392
-2026/08/14-15:37:35.662 a68c Level-0 table #397: started
-2026/08/14-15:37:35.682 a68c Level-0 table #397: 146759 bytes OK
-2026/08/14-15:37:35.687 a68c Delete type=0 #394
-2026/08/14-15:37:35.692 a68c Compacting 4@0 + 1@1 files
-2026/08/14-15:37:35.721 a68c Generated table #398@0: 88 keys, 349218 bytes
-2026/08/14-15:37:35.721 a68c Compacted 4@0 + 1@1 files => 349218 bytes
-2026/08/14-15:37:35.723 a68c compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/08/14-15:37:35.725 a68c Delete type=2 #388
-2026/08/14-15:37:35.725 a68c Delete type=2 #391
-2026/08/14-15:37:35.726 a68c Delete type=2 #393
-2026/08/14-15:37:35.726 a68c Delete type=2 #395
-2026/08/14-15:37:35.726 a68c Delete type=2 #397
-2026/08/14-15:38:02.597 a68c Level-0 table #400: started
-2026/08/14-15:38:02.628 a68c Level-0 table #400: 103708 bytes OK
-2026/08/14-15:38:02.630 a68c Delete type=0 #396
-2026/08/14-15:38:24.100 a68c Level-0 table #402: started
-2026/08/14-15:38:24.126 a68c Level-0 table #402: 103442 bytes OK
-2026/08/14-15:38:24.130 a68c Delete type=0 #399
+2026/08/17-08:50:38.726 4118 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/17-08:50:38.741 4118 Recovering log #415
+2026/08/17-08:50:38.742 4118 Level-0 table #419: started
+2026/08/17-08:50:38.774 4118 Level-0 table #419: 104213 bytes OK
+2026/08/17-08:50:38.785 4118 Recovering log #418
+2026/08/17-08:50:38.806 4118 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/000418.log 
+2026/08/17-08:50:38.809 4118 Delete type=0 #415
+2026/08/17-08:51:38.842 7488 Level-0 table #421: started
+2026/08/17-08:51:38.869 7488 Level-0 table #421: 104564 bytes OK
+2026/08/17-08:51:38.871 7488 Delete type=0 #418
+2026/08/17-08:52:14.367 7488 Level-0 table #423: started
+2026/08/17-08:52:14.426 7488 Level-0 table #423: 104248 bytes OK
+2026/08/17-08:52:14.441 7488 Delete type=0 #420
+2026/08/17-08:52:41.477 7488 Level-0 table #425: started
+2026/08/17-08:52:41.498 7488 Level-0 table #425: 103774 bytes OK
+2026/08/17-08:52:41.500 7488 Delete type=0 #422
+2026/08/17-08:52:41.505 7488 Compacting 4@0 + 1@1 files
+2026/08/17-08:52:41.531 7488 Generated table #426@0: 92 keys, 305054 bytes
+2026/08/17-08:52:41.532 7488 Compacted 4@0 + 1@1 files => 305054 bytes
+2026/08/17-08:52:41.533 7488 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/17-08:52:41.535 7488 Delete type=2 #417
+2026/08/17-08:52:41.535 7488 Delete type=2 #419
+2026/08/17-08:52:41.535 7488 Delete type=2 #421
+2026/08/17-08:52:41.535 7488 Delete type=2 #423
+2026/08/17-08:52:41.536 7488 Delete type=2 #425
+2026/08/17-08:53:33.377 2e84 Level-0 table #428: started
+2026/08/17-08:53:33.409 2e84 Level-0 table #428: 104298 bytes OK

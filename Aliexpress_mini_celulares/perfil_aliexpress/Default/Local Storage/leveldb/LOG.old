@@ -1,42 +1,38 @@
-2026/08/14-15:16:21.977 d590 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/MANIFEST-000001
-2026/08/14-15:16:22.005 d590 Recovering log #371
-2026/08/14-15:16:22.007 d590 Level-0 table #374: started
-2026/08/14-15:16:22.039 d590 Level-0 table #374: 97210 bytes OK
-2026/08/14-15:16:22.055 d590 Recovering log #373
-2026/08/14-15:16:22.057 d590 Level-0 table #375: started
-2026/08/14-15:16:22.075 d590 Level-0 table #375: 97257 bytes OK
-2026/08/14-15:16:22.088 d590 Delete type=0 #371
-2026/08/14-15:16:22.088 d590 Delete type=0 #373
-2026/08/14-15:17:22.140 1650 Level-0 table #378: started
-2026/08/14-15:17:22.161 1650 Level-0 table #378: 98308 bytes OK
-2026/08/14-15:17:22.164 1650 Delete type=0 #376
-2026/08/14-15:17:22.168 1650 Compacting 4@0 + 1@1 files
-2026/08/14-15:17:22.193 1650 Generated table #379@0: 88 keys, 298333 bytes
-2026/08/14-15:17:22.193 1650 Compacted 4@0 + 1@1 files => 298333 bytes
-2026/08/14-15:17:22.195 1650 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/08/14-15:17:22.196 1650 Delete type=2 #370
-2026/08/14-15:17:22.196 1650 Delete type=2 #372
-2026/08/14-15:17:22.196 1650 Delete type=2 #374
-2026/08/14-15:17:22.197 1650 Delete type=2 #375
-2026/08/14-15:17:22.197 1650 Delete type=2 #378
-2026/08/14-15:17:53.793 1650 Level-0 table #381: started
-2026/08/14-15:17:53.821 1650 Level-0 table #381: 103666 bytes OK
-2026/08/14-15:17:53.824 1650 Delete type=0 #377
-2026/08/14-15:18:19.251 1650 Level-0 table #383: started
-2026/08/14-15:18:19.276 1650 Level-0 table #383: 103417 bytes OK
-2026/08/14-15:18:19.278 1650 Delete type=0 #380
-2026/08/14-15:18:24.110 1650 Level-0 table #385: started
-2026/08/14-15:18:24.128 1650 Level-0 table #385: 103368 bytes OK
-2026/08/14-15:18:24.130 1650 Delete type=0 #382
-2026/08/14-15:18:55.202 1650 Level-0 table #387: started
-2026/08/14-15:18:55.236 1650 Level-0 table #387: 147055 bytes OK
-2026/08/14-15:18:55.239 1650 Delete type=0 #384
-2026/08/14-15:18:55.247 1650 Compacting 4@0 + 1@1 files
-2026/08/14-15:18:55.330 1650 Generated table #388@0: 88 keys, 346907 bytes
-2026/08/14-15:18:55.330 1650 Compacted 4@0 + 1@1 files => 346907 bytes
-2026/08/14-15:18:55.331 1650 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/08/14-15:18:55.333 1650 Delete type=2 #379
-2026/08/14-15:18:55.333 1650 Delete type=2 #381
-2026/08/14-15:18:55.333 1650 Delete type=2 #383
-2026/08/14-15:18:55.334 1650 Delete type=2 #385
-2026/08/14-15:18:55.334 1650 Delete type=2 #387
+2026/08/17-08:43:14.037 a178 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\Aliexpress_mini_celulares\perfil_aliexpress\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/17-08:43:14.106 a178 Recovering log #401
+2026/08/17-08:43:14.107 a178 Level-0 table #404: started
+2026/08/17-08:43:14.265 a178 Level-0 table #404: 103393 bytes OK
+2026/08/17-08:43:14.342 a178 Delete type=0 #401
+2026/08/17-08:44:01.619 6fb8 Level-0 table #407: started
+2026/08/17-08:44:01.649 6fb8 Level-0 table #407: 112105 bytes OK
+2026/08/17-08:44:01.651 6fb8 Delete type=0 #405
+2026/08/17-08:44:01.657 6fb8 Compacting 4@0 + 1@1 files
+2026/08/17-08:44:01.685 6fb8 Generated table #408@0: 91 keys, 304749 bytes
+2026/08/17-08:44:01.685 6fb8 Compacted 4@0 + 1@1 files => 304749 bytes
+2026/08/17-08:44:01.687 6fb8 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/17-08:44:01.688 6fb8 Delete type=2 #398
+2026/08/17-08:44:01.689 6fb8 Delete type=2 #400
+2026/08/17-08:44:01.689 6fb8 Delete type=2 #402
+2026/08/17-08:44:01.689 6fb8 Delete type=2 #404
+2026/08/17-08:44:01.689 6fb8 Delete type=2 #407
+2026/08/17-08:44:14.408 6fb8 Level-0 table #410: started
+2026/08/17-08:44:14.429 6fb8 Level-0 table #410: 104440 bytes OK
+2026/08/17-08:44:14.432 6fb8 Delete type=0 #406
+2026/08/17-08:44:46.568 6fb8 Level-0 table #412: started
+2026/08/17-08:44:46.594 6fb8 Level-0 table #412: 104215 bytes OK
+2026/08/17-08:44:46.597 6fb8 Delete type=0 #409
+2026/08/17-08:45:05.789 6fb8 Level-0 table #414: started
+2026/08/17-08:45:05.806 6fb8 Level-0 table #414: 103713 bytes OK
+2026/08/17-08:45:05.809 6fb8 Delete type=0 #411
+2026/08/17-08:45:17.306 6fb8 Level-0 table #416: started
+2026/08/17-08:45:17.324 6fb8 Level-0 table #416: 104235 bytes OK
+2026/08/17-08:45:17.327 6fb8 Delete type=0 #413
+2026/08/17-08:45:17.332 6fb8 Compacting 4@0 + 1@1 files
+2026/08/17-08:45:17.357 6fb8 Generated table #417@0: 91 keys, 304744 bytes
+2026/08/17-08:45:17.357 6fb8 Compacted 4@0 + 1@1 files => 304744 bytes
+2026/08/17-08:45:17.358 6fb8 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/17-08:45:17.360 6fb8 Delete type=2 #408
+2026/08/17-08:45:17.360 6fb8 Delete type=2 #410
+2026/08/17-08:45:17.360 6fb8 Delete type=2 #412
+2026/08/17-08:45:17.360 6fb8 Delete type=2 #414
+2026/08/17-08:45:17.360 6fb8 Delete type=2 #416

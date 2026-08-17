@@ -171,57 +171,87 @@ async def _atributo_primeiro(page, seletores: List[str], atributo: str = "src", 
 async def _capturar_comentarios(page) -> List[str]:
     comentarios = []
     
-    # 1. Clicar ativamente na aba de Avaliações via JS
+    # 1. Rola para o topo para garantir que o menu flutuante ou âncoras estejam clicáveis
+    try:
+        await page.evaluate("window.scrollTo(0, 0)")
+        await page.wait_for_timeout(1000)
+    except Exception:
+        pass
+
+    # 2. Clicar ativamente na aba de Avaliações via JS
     await page.evaluate("""
         () => {
             const elementos = document.querySelectorAll('div, span, a, button, li');
             for(let el of elementos) {
                 if(el.innerText && el.innerText.trim().match(/^(Avaliações|Reviews|Customer Reviews)/i)) {
                     el.click();
-                    break;
                 }
             }
         }
     """)
-    await page.wait_for_timeout(2000) # Aguarda a aba de avaliações renderizar
+    # Pausa estendida e obrigatória para a API do AliExpress devolver os textos
+    await page.wait_for_timeout(3000) 
 
-    # 2. Rolar a página para forçar o lazy loading dos comentários
+    # 3. Rolar a página para baixo para forçar o carregamento das imagens e textos dos itens
     try:
         await page.evaluate("window.scrollBy(0, 800)")
         await page.wait_for_timeout(1000)
-        await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-        await page.wait_for_timeout(1500)
+        await page.evaluate("window.scrollBy(0, 800)")
+        await page.wait_for_timeout(1000)
     except Exception:
         pass
 
-    # 3. Buscar os comentários
-    seletores = [
-        "[class*='feedback-item']", 
-        "[class*='review-content']", 
-        ".buyer-feedback", 
-        "[data-pl='product-reviews'] div",
-        "[class*='review-item']"
-    ]
-
-    for seletor in seletores:
-        try:
-            locs = page.locator(seletor)
-            count = await locs.count()
-            for i in range(count):
-                txt = await locs.nth(i).inner_text(timeout=1000)
-                txt_clean = " ".join(txt.split())
-                
-                # Evita pegar textos curtos como "Ótimo" ou dados quebrados
-                if len(txt_clean) > 15 and txt_clean not in comentarios:
-                    comentarios.append(txt_clean)
-                
-                # Limite de 10 comentários por produto
-                if len(comentarios) >= 10: 
-                    return comentarios
-        except Exception:
-            continue
+    # 4. Busca agressiva de comentários via JS (Mapeia as principais classes do AliExpress)
+    comentarios_js = await page.evaluate('''
+        () => {
+            const out = [];
+            // Seletores comuns do AliExpress para comentários
+            const els = document.querySelectorAll(
+                '[class*="feedback-item"], [class*="review-content"], [class*="buyer-review"], [class*="review-text"], .buyer-feedback, [data-pl="product-reviews"] span'
+            );
             
-    return comentarios
+            for(let el of els) {
+                const txt = (el.innerText || '').replace(/\\s+/g, ' ').trim();
+                // Filtra textos muito curtos ou vazios
+                if(txt.length > 15 && !txt.includes('AliExpress') && !out.includes(txt)) {
+                    out.push(txt);
+                }
+            }
+            return out.slice(0, 10);
+        }
+    ''')
+
+    if comentarios_js:
+        comentarios.extend(comentarios_js)
+
+    # 5. Se o JS falhar, tenta com o Playwright como fallback de segurança
+    if not comentarios:
+        seletores = [
+            "[class*='feedback-item']", 
+            "[class*='review-content']", 
+            ".buyer-feedback", 
+            "[data-pl='product-reviews'] div",
+            "[class*='review-item']"
+        ]
+
+        for seletor in seletores:
+            try:
+                locs = page.locator(seletor)
+                count = await locs.count()
+                for i in range(count):
+                    txt = await locs.nth(i).inner_text(timeout=1000)
+                    txt_clean = " ".join(txt.split())
+                    
+                    if len(txt_clean) > 15 and txt_clean not in comentarios:
+                        comentarios.append(txt_clean)
+                    
+                    if len(comentarios) >= 10: 
+                        break
+            except Exception:
+                continue
+
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO]  COMENTÁRIOS      Capturados: {len(comentarios)}")
+    return comentarios[:10]
 
 async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     await _fechar_popups_basicos(page)
