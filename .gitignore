@@ -1,1 +1,9 @@
-Aliexpress_mini_celulares/perfil_aliexpress/Default/Cache/
+# Ignorar caches do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignorar pastas de perfis do navegador e diretórios temporários de depuração
+chrome_profiles/
+perfil_*/
+/chrome_debug_*/
