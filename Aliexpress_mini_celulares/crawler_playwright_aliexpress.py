@@ -260,42 +260,30 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
     
-    await page.evaluate("window.scrollBy(0, 800)")
+    # 1. Rolar para ativar o lazy loading
+    await page.evaluate("window.scrollBy(0, 700)")
     await page.wait_for_timeout(1500)
 
-    for aba_texto in ["Detalhes", "Specifications", "Especificações"]:
-        try:
-            abas = page.get_by_text(aba_texto, exact=True)
-            for i in range(await abas.count()):
-                aba = abas.nth(i)
-                if await aba.is_visible(timeout=500):
-                    await aba.click(force=True, timeout=1000)
-        except Exception:
-            pass
-
-    await page.wait_for_timeout(1500)
-    await rolar_pagina(page, passos=2, pausa=0.8)
-
-    for btn_texto in ["Ver mais", "View More", "Show more"]:
-        try:
-            botoes = page.get_by_text(btn_texto, exact=False)
-            for i in range(await botoes.count()):
-                btn = botoes.nth(i)
-                if await btn.is_visible(timeout=500):
-                    await btn.click(force=True, timeout=1000)
-        except Exception:
-            pass
-
+    # 2. Clicar na aba "Detalhes" (forçando via JS para evitar bloqueios de UI) e destruir o CSS
     await page.evaluate("""
         () => {
-            const termos = ['ver mais', 'view more', 'show more'];
-            const elementos = document.querySelectorAll('button, a, div, span');
-            for (const el of elementos) {
-                const txt = (el.innerText || el.textContent || '').toLowerCase().trim();
-                if (termos.includes(txt)) {
-                    el.click();
-                }
-            }
+            const abas = Array.from(document.querySelectorAll('div, span, a, button, li'));
+            const abaDetalhes = abas.find(el => 
+                el.innerText && (el.innerText.trim().match(/^(Detalhes|Specifications|Especificações)$/i))
+            );
+            if (abaDetalhes) abaDetalhes.click();
+            
+            const btnVerMais = abas.find(el => 
+                el.innerText && (el.innerText.trim().match(/^(Ver mais|View More|Show more|Mais)$/i))
+            );
+            if (btnVerMais) btnVerMais.click();
+
+            // Destrói CSS de limites (Bypass em containers colapsados)
+            document.querySelectorAll('[class*="spec"], [class*="detail"], [id*="specification"]').forEach(el => {
+                el.style.maxHeight = 'none';
+                el.style.overflow = 'visible';
+                el.style.display = 'block';
+            });
         }
     """)
     await page.wait_for_timeout(3000)
