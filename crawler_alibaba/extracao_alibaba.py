@@ -8,11 +8,12 @@ from typing import Any, Dict, List
 
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
-from utils_alibaba import limpar_url
+# IMPORTAÇÕES CORRIGIDAS AQUI
+from utils_alibaba import limpar_url, normalizar_chave
+from base_anatel_alibaba import normalizar_codigo_anatel
 
 
 async def fechar_popups_basicos(page: Page) -> None:
-    """Fecha popups comuns sem quebrar a execução caso não existam."""
     seletores = [
         "button:has-text('Accept')",
         "button:has-text('I agree')",
@@ -28,7 +29,7 @@ async def fechar_popups_basicos(page: Page) -> None:
     for seletor in seletores:
         try:
             loc = page.locator(seletor).first
-            if await loc.count() and await loc.is_visible(timeout=700):
+            if await loc.count() and await loc.is_visible(timeout=500):
                 await loc.click(timeout=1000)
                 await page.wait_for_timeout(300)
         except Exception:
@@ -56,28 +57,16 @@ async def rolar_pagina(page: Page, passos: int = 4, pausa_ms: int = 700) -> None
             break
 
 
-async def coletar_links_resultados(page: Page) -> List[Dict[str, Any]]:
-    """
-    Coleta links de produtos da página de busca.
-
-    Esta versão evita `page.evaluate()` na página inteira. A versão anterior
-    tinha uma string JavaScript com `split('\n')` que, ao ser interpretada pelo
-    Python, virava uma quebra de linha literal dentro do JavaScript e causava:
-    "Page.evaluate: SyntaxError: Invalid or unexpected token".
-
-    Usar locators do Playwright deixa a coleta mais estável e mais fácil de
-    depurar quando o Alibaba muda o layout.
-    """
+async def coletar_links_resultados(page: Page) -> List[str]:
     await rolar_pagina(page, passos=4, pausa_ms=600)
 
     seletores_links = [
         "a[href*='/product-detail/']",
         "a[href*='alibaba.com/product-detail']",
-        "a[href*='/trade/search'] + a[href*='/product-detail/']",
     ]
 
     vistos = set()
-    resultados: List[Dict[str, Any]] = []
+    resultados = []
 
     for seletor in seletores_links:
         try:
@@ -89,50 +78,14 @@ async def coletar_links_resultados(page: Page) -> List[Dict[str, Any]]:
         limite = min(total, 160)
         for i in range(limite):
             try:
-                a = links.nth(i)
-                href = await a.get_attribute("href", timeout=1200)
+                href = await links.nth(i).get_attribute("href", timeout=1200)
                 if not href:
                     continue
 
                 url = limpar_url(href)
-                if not url or "/product-detail/" not in url or url in vistos:
-                    continue
-
-                titulo_attr = await a.get_attribute("title", timeout=800) or ""
-                aria = await a.get_attribute("aria-label", timeout=800) or ""
-                texto_link = ""
-                texto_card = ""
-
-                try:
-                    texto_link = (await a.inner_text(timeout=1200)).strip()
-                except Exception:
-                    texto_link = ""
-
-                # Tenta pegar um texto maior do card onde o link está inserido.
-                # Se falhar, usa apenas o texto do próprio link.
-                for xpath in [
-                    "xpath=ancestor::*[contains(@class, 'card')][1]",
-                    "xpath=ancestor::*[contains(@class, 'item')][1]",
-                    "xpath=ancestor::div[1]",
-                    "xpath=ancestor::div[2]",
-                    "xpath=ancestor::div[3]",
-                ]:
-                    try:
-                        candidato = (await a.locator(xpath).inner_text(timeout=900)).strip()
-                        if len(candidato) > len(texto_card):
-                            texto_card = candidato
-                    except Exception:
-                        continue
-
-                titulo = titulo_attr or aria or texto_link or (texto_card.splitlines()[0] if texto_card else "")
-                vistos.add(url)
-                resultados.append(
-                    {
-                        "url": url,
-                        "titulo_busca": re.sub(r"\s+", " ", titulo).strip(),
-                        "texto_card": re.sub(r"\s+", " ", texto_card or texto_link).strip(),
-                    }
-                )
+                if "/product-detail/" in url and url not in vistos:
+                    vistos.add(url)
+                    resultados.append(url)
             except Exception:
                 continue
 
@@ -141,101 +94,57 @@ async def coletar_links_resultados(page: Page) -> List[Dict[str, Any]]:
 
     return resultados
 
+
+async def coletar_atributos(page: Page) -> dict[str, str]:
+    script = r"""
+    () => {
+      const saida = [];
+      const vistos = new Set();
+      const limpar = (valor) => (valor || '').replace(/\s+/g, ' ').trim();
+      
+      for (const elemento of document.querySelectorAll('.do-entry-list dl, .specification-table tr, [data-role="specification"] dl, .product-properties tr')) {
+        const rotulo = elemento.querySelector('dt, th, .attr-name, .title');
+        const valor = elemento.querySelector('dd, td, .attr-value, .value');
+        if (rotulo && valor) {
+            const r = limpar(rotulo.innerText || rotulo.textContent);
+            const v = limpar(valor.innerText || valor.textContent);
+            if (r && v) {
+                const chave = `${r}=>${v}`;
+                if (!vistos.has(chave)) {
+                    vistos.add(chave);
+                    saida.push([r, v]);
+                }
+            }
+        }
+      }
+      return saida.slice(0, 200);
+    }
+    """
+    try:
+        pares = await page.evaluate(script) or []
+    except Exception:
+        pares = []
+
+    atributos: dict[str, str] = {}
+    for rotulo, valor in pares:
+        chave = normalizar_chave(rotulo)
+        if chave not in atributos or len(str(valor)) < len(atributos[chave]):
+            atributos[chave] = str(valor).strip()
+
+    return atributos
+
+
 async def _primeiro_texto(page: Page, seletores: List[str]) -> str:
     for seletor in seletores:
         try:
             loc = page.locator(seletor).first
-            if await loc.count() and await loc.is_visible(timeout=1200):
-                txt = (await loc.inner_text(timeout=1500)).strip()
+            if await loc.count() and await loc.is_visible(timeout=1000):
+                txt = (await loc.inner_text(timeout=1000)).strip()
                 if txt:
                     return re.sub(r"\s+", " ", txt)
         except Exception:
             continue
     return ""
-
-
-async def _meta_content(page: Page, seletor: str) -> str:
-    try:
-        valor = await page.locator(seletor).first.get_attribute("content", timeout=1200)
-        return (valor or "").strip()
-    except Exception:
-        return ""
-
-
-async def extrair_produto(page: Page, url: str, card: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    card = card or {}
-    await esperar_carregamento(page)
-    await rolar_pagina(page, passos=5, pausa_ms=500)
-
-    titulo = await _primeiro_texto(
-        page,
-        [
-            "h1",
-            "[data-pl='product-title']",
-            "[class*='product-title']",
-            "[class*='ProductTitle']",
-            "[class*='title'] h1",
-        ],
-    )
-    if not titulo:
-        titulo = await _meta_content(page, "meta[property='og:title']")
-    if not titulo:
-        titulo = card.get("titulo_busca", "")
-
-    preco = await _primeiro_texto(
-        page,
-        [
-            "[class*='price']",
-            "[data-pl='product-price']",
-            "[class*='Price']",
-            "span:has-text('US$')",
-            "span:has-text('$')",
-        ],
-    )
-
-    fornecedor = await _primeiro_texto(
-        page,
-        [
-            "a[href*='company_profile']",
-            "[class*='supplier'] a",
-            "[class*='Supplier'] a",
-            "[class*='company'] a",
-            "[class*='Company'] a",
-            "[data-pl='supplier']",
-        ],
-    )
-
-    imagem = await _meta_content(page, "meta[property='og:image']")
-    if not imagem:
-        try:
-            imagem = await page.locator("img").first.get_attribute("src", timeout=1200) or ""
-        except Exception:
-            imagem = ""
-
-    texto_pagina = ""
-    try:
-        texto_pagina = await page.locator("body").inner_text(timeout=8000)
-        texto_pagina = re.sub(r"\s+", " ", texto_pagina).strip()
-    except Exception:
-        texto_pagina = ""
-
-    detalhes = _extrair_trecho_detalhes(texto_pagina)
-    moq = _extrair_moq(texto_pagina)
-    vendidos = _extrair_vendidos(texto_pagina)
-
-    return {
-        "url": url,
-        "url_canonica": limpar_url(url),
-        "titulo": titulo,
-        "preco": preco,
-        "fornecedor": fornecedor,
-        "moq": moq,
-        "vendidos_pedidos": vendidos,
-        "imagem": imagem,
-        "detalhes": detalhes,
-        "texto_card": card.get("texto_card", ""),
-        "texto_pagina": texto_pagina[:80000],
-    }
 
 
 def _extrair_trecho_detalhes(texto: str) -> str:
@@ -257,24 +166,69 @@ def _extrair_trecho_detalhes(texto: str) -> str:
     return texto[inicio : inicio + 9000]
 
 
-def _extrair_moq(texto: str) -> str:
-    if not texto:
-        return ""
-    padroes = [
-        r"(?:Min\.?\s*order|Minimum order|MOQ)\s*[:：]?\s*([^\|]{1,80})",
-        r"(\d+\s*(?:piece|pieces|pcs|sets)\s*\(Min\. order\))",
+async def extrair_produto(page: Page, url: str) -> Dict[str, Any]:
+    await esperar_carregamento(page)
+    await rolar_pagina(page, passos=5, pausa_ms=500)
+
+    titulo = await _primeiro_texto(
+        page,
+        [
+            "h1",
+            "[data-pl='product-title']",
+            "[class*='title'] h1",
+        ],
+    )
+
+    preco = await _primeiro_texto(
+        page,
+        [
+            "[class*='price']",
+            "[data-pl='product-price']",
+            "span:has-text('US$')",
+        ],
+    )
+
+    atributos = await coletar_atributos(page)
+    
+    texto_pagina = ""
+    try:
+        if await page.locator("body").count():
+            texto_pagina = await page.locator("body").inner_text(timeout=5000)
+            texto_pagina = re.sub(r"\s+", " ", texto_pagina).strip()
+    except Exception:
+        pass
+
+    marca = atributos.get(normalizar_chave("brand name")) or atributos.get(normalizar_chave("brand")) or ""
+    modelo = atributos.get(normalizar_chave("model number")) or atributos.get(normalizar_chave("model")) or ""
+
+    codigo_anatel = ""
+    padroes_anatel = [
+        r"(?:anatel|homologa(?:cao|ção))[^\d]{0,40}(\d{8,14})",
+        r"(\d{5}[-\s]?\d{2}[-\s]?\d{4})"
     ]
-    for p in padroes:
-        m = re.search(p, texto, re.IGNORECASE)
-        if m:
-            return re.sub(r"\s+", " ", m.group(1)).strip()
-    return ""
+    
+    for padrao in padroes_anatel:
+        for match in re.finditer(padrao, texto_pagina, flags=re.IGNORECASE):
+            cand = normalizar_codigo_anatel(match.group(1))
+            if len(cand) == 12:
+                codigo_anatel = cand
+                break
+        if codigo_anatel:
+            break
 
-
-def _extrair_vendidos(texto: str) -> str:
-    if not texto:
-        return ""
-    m = re.search(r"(\d+[\d,\.]*\s*(?:sold|orders|pieces sold))", texto, re.IGNORECASE)
-    if m:
-        return m.group(1).strip()
-    return ""
+    return {
+        "url": url,
+        "titulo": titulo,
+        "preco": preco,
+        "marca": marca,
+        "fabricante": marca,
+        "modelo": modelo,
+        "modelo_detalhado": modelo,
+        "modelo_alfanumerico": modelo,
+        "numero_modelo": modelo,
+        "codigo_anatel_principal": codigo_anatel,
+        "descricao": _extrair_trecho_detalhes(texto_pagina),
+        "texto_pagina": texto_pagina[:80000] if texto_pagina else "",
+        "atributos": atributos,
+        "comentarios": []
+    }
