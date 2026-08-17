@@ -260,35 +260,43 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
     
-    # 1. Rolar para ativar o lazy loading
-    await page.evaluate("window.scrollBy(0, 700)")
-    await page.wait_for_timeout(1500)
+    # 1. Rolar suavemente como um humano para ativar o lazy loading
+    await page.mouse.wheel(0, 800)
+    await page.wait_for_timeout(2000)
 
-    # 2. Clicar na aba "Detalhes" (forçando via JS para evitar bloqueios de UI) e destruir o CSS
-    await page.evaluate("""
-        () => {
-            const abas = Array.from(document.querySelectorAll('div, span, a, button, li'));
-            const abaDetalhes = abas.find(el => 
-                el.innerText && (el.innerText.trim().match(/^(Detalhes|Specifications|Especificações)$/i))
-            );
-            if (abaDetalhes) abaDetalhes.click();
-            
-            const btnVerMais = abas.find(el => 
-                el.innerText && (el.innerText.trim().match(/^(Ver mais|View More|Show more|Mais)$/i))
-            );
-            if (btnVerMais) btnVerMais.click();
+    # 2. Clicar na aba "Detalhes" usando as ferramentas nativas do Playwright
+    for aba_texto in ["Detalhes", "Specifications", "Especificações"]:
+        try:
+            aba = page.get_by_text(aba_texto, exact=True).first
+            if await aba.count() > 0:
+                await aba.scroll_into_view_if_needed() # Puxa para a tela
+                await page.wait_for_timeout(500)
+                await aba.click(timeout=3000)
+                await page.wait_for_timeout(2000) # Espera a aba renderizar
+                break
+        except Exception:
+            pass
 
-            // Destrói CSS de limites (Bypass em containers colapsados)
-            document.querySelectorAll('[class*="spec"], [class*="detail"], [id*="specification"]').forEach(el => {
-                el.style.maxHeight = 'none';
-                el.style.overflow = 'visible';
-                el.style.display = 'block';
-            });
-        }
-    """)
-    await page.wait_for_timeout(3000)
+    # 3. Rolar mais um pouco para o botão "Ver mais" aparecer na tela
+    await page.mouse.wheel(0, 600)
+    await page.wait_for_timeout(1000)
 
-    await rolar_pagina(page, passos=3, pausa=0.5)
+    # 4. Clicar no botão "Ver mais" nativamente
+    for btn_texto in ["Ver mais", "View More", "Show more", "Mais"]:
+        try:
+            # Pega o último botão (geralmente o que fica no final da tabela)
+            btn = page.get_by_text(btn_texto, exact=False).last 
+            if await btn.count() > 0:
+                await btn.scroll_into_view_if_needed()
+                await page.wait_for_timeout(500)
+                await btn.click(timeout=3000)
+                await page.wait_for_timeout(2000) # Espera a tabela expandir
+                break
+        except Exception:
+            pass
+
+    # 5. Dá uma última rolada para garantir que toda a tabela expandida carregou
+    await rolar_pagina(page, passos=2, pausa=0.5)
 
     titulo = await _texto_primeiro(page, ["h1", "[data-pl='product-title'], .product-title"])
     if not titulo:
@@ -305,6 +313,7 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
 
+    # Lógica de extração de dados mantida
     atributos = await page.evaluate(
         """
         () => {
