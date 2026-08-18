@@ -1,0 +1,14 @@
+2026/07/22-12:13:29.352 bd10 Creating DB C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\amazon_crawler\chrome_profiles\amazon_profile\Default\Local Storage\leveldb since it was missing.
+2026/07/22-12:13:29.549 bd10 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\amazon_crawler\chrome_profiles\amazon_profile\Default\Local Storage\leveldb/MANIFEST-000001
+2026/07/22-12:14:29.603 6c68 Level-0 table #5: started
+2026/07/22-12:14:29.628 6c68 Level-0 table #5: 36921 bytes OK
+2026/07/22-12:14:29.646 6c68 Delete type=0 #3
+2026/07/22-12:16:29.600 6c68 Level-0 table #7: started
+2026/07/22-12:16:29.629 6c68 Level-0 table #7: 86228 bytes OK
+2026/07/22-12:16:29.652 6c68 Delete type=0 #4
+2026/07/22-12:25:29.601 6c68 Level-0 table #9: started
+2026/07/22-12:25:29.624 6c68 Level-0 table #9: 22084 bytes OK
+2026/07/22-12:25:29.629 6c68 Delete type=0 #6
+2026/07/22-12:34:29.614 6c68 Level-0 table #11: started
+2026/07/22-12:34:29.634 6c68 Level-0 table #11: 23215 bytes OK
+2026/07/22-12:34:29.638 6c68 Delete type=0 #8

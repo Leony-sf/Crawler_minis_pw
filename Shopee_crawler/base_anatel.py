@@ -1,184 +1,157 @@
 from __future__ import annotations
-
+import re
+from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
-
 import pandas as pd
 
-from .utils import (
-    log,
-    log_aviso,
-    log_ok,
-    normalizar_codigo_anatel,
-    normalizar_texto,
-)
+from utils import log, normalizar_chave, normalizar_texto
 
+def normalizar_codigo_anatel(valor: Any) -> str:
+    texto = str(valor or "").strip().replace("\xa0", " ")
+    if not texto: return ""
+    decimal = texto.replace(",", ".")
+    if "e+" in decimal.lower() or "e-" in decimal.lower():
+        try: texto = format(Decimal(decimal), "f")
+        except InvalidOperation: pass
+    if re.fullmatch(r"\d+\.0+", texto): texto = texto.split(".", 1)[0]
+    digitos = re.sub(r"\D", "", texto)
+    if not digitos: return ""
+    if len(digitos) < 12: return digitos.zfill(12)
+    return digitos[-12:]
 
-CANDIDATOS_COLUNA_CODIGO = [
-    "numero de homologacao",
-    "número de homologação",
-    "homologacao",
-    "homologação",
-    "codigo anatel",
-    "código anatel",
-    "nr homologacao",
-    "nr de homologacao",
-    "nr de homologação",
-    "nº homologacao",
-    "nº de homologacao",
-    "nº de homologação",
-]
-
-CANDIDATOS_COLUNA_FABRICANTE = [
-    "fabricante",
-    "nome fabricante",
-    "nome do fabricante",
-    "fornecedor",
-]
-
-CANDIDATOS_COLUNA_MARCA = [
-    "marca",
-    "marca comercial",
-]
-
-CANDIDATOS_COLUNA_MODELO = [
-    "modelo",
-    "modelo comercial",
-    "nome modelo",
-    "nome do modelo",
-    "numero do modelo",
-    "número do modelo",
-]
-
-CANDIDATOS_COLUNA_VERSAO = [
-    "versao",
-    "versão",
-    "versoes",
-    "versões",
-    "modelo versao",
-    "modelo versão",
-    "versao do modelo",
-    "versão do modelo",
-]
-
-CANDIDATOS_COLUNA_TIPO = [
-    "tipo",
-    "tipo produto",
-    "tipo de produto",
-    "produto",
-]
-
-
-def _normalizar_nome_coluna(col: Any) -> str:
-    return normalizar_texto(col).replace("º", "o")
-
-
-def _achar_coluna(df: pd.DataFrame, candidatos: list[str]) -> str | None:
-    mapa = {_normalizar_nome_coluna(c): c for c in df.columns}
-    candidatos_norm = [normalizar_texto(c) for c in candidatos]
-
-    for candidato in candidatos_norm:
-        if candidato in mapa:
-            return mapa[candidato]
-
-    for col_norm, col_original in mapa.items():
-        if any(candidato in col_norm for candidato in candidatos_norm):
-            return col_original
-
-    return None
-
-
-def carregar_base_anatel(caminho: str | None) -> pd.DataFrame:
-    if not caminho:
-        log(
-            "base",
-            "Nenhuma base ANATEL informada. "
-            "Sem a base, os produtos serão classificados como IRREGULAR/SEM BASE.",
-        )
-        return pd.DataFrame()
-
-    path = Path(caminho)
-
-    if not path.exists():
-        log("base", f"Base não encontrada: {path}")
-        return pd.DataFrame()
-
+def _ler_csv(caminho: str | Path) -> pd.DataFrame:
+    path = Path(caminho).expanduser().resolve()
+    if not path.is_file(): raise FileNotFoundError(f"Base Anatel não encontrada: {path}")
     tentativas = [
-        {"sep": ";", "encoding": "utf-8-sig"},
-        {"sep": ";", "encoding": "latin1"},
-        {"sep": ",", "encoding": "utf-8-sig"},
-        {"sep": ",", "encoding": "latin1"},
-        {"sep": "\t", "encoding": "utf-8-sig"},
-        {"sep": "\t", "encoding": "latin1"},
-        {"sep": "\t", "encoding": "utf-16"},
-        {"sep": None, "encoding": "utf-8-sig", "engine": "python"},
-        {"sep": None, "encoding": "latin1", "engine": "python"},
+        {"sep": ";", "encoding": "utf-8-sig"}, {"sep": ";", "encoding": "latin1"},
+        {"sep": ",", "encoding": "utf-8-sig"}, {"sep": ",", "encoding": "latin1"},
     ]
-
-    ultimo_erro = None
-
-    for kwargs in tentativas:
+    for kw in tentativas:
         try:
-            df = pd.read_csv(path, dtype=str, **kwargs).fillna("")
-            base = preparar_base(df)
+            return pd.read_csv(path, dtype=str, keep_default_na=False, on_bad_lines="skip", **kw)
+        except Exception: pass
+    raise RuntimeError("Falha ao ler a base Anatel.")
 
-            if not base.empty:
-                log("base", f"CSV lido corretamente com parâmetros: {kwargs}")
-                return base
+def _achar_coluna(df: pd.DataFrame, alternativas: list[list[str]]) -> str:
+    norm = {c: normalizar_chave(c) for c in df.columns}
+    for termos in alternativas:
+        t_norm = [normalizar_chave(t) for t in termos]
+        for col, chave in norm.items():
+            if all(t in chave for t in t_norm): return col
+    return ""
 
-            log(
-                "base",
-                f"Tentativa sem coluna válida. Parâmetros: {kwargs}. "
-                f"Colunas lidas: {list(df.columns)[:10]}",
-            )
+def _achar_coluna_exata(df: pd.DataFrame, nome_esperado: str) -> str:
+    esp = normalizar_chave(nome_esperado)
+    for col in df.columns:
+        if normalizar_chave(col) == esp: return col
+    return ""
 
-        except Exception as exc:
-            ultimo_erro = exc
-            log("base", f"Falha ao ler CSV com {kwargs}: {exc}")
+def _texto_compativel(anuncio: str, base: str) -> bool:
+    an = normalizar_texto(anuncio)
+    bn = normalizar_texto(base)
+    if not an or not bn: return False
+    return an == bn or an in bn or bn in an
 
-    log("base", f"Não consegui ler a base ANATEL corretamente: {ultimo_erro}")
-    return pd.DataFrame()
+@dataclass
+class BaseAnatel:
+    dataframe: pd.DataFrame
+    coluna_codigo: str
+    coluna_fabricante: str = ""
+    coluna_modelo: str = ""
+    coluna_situacao_requerimento: str = ""
 
+    def buscar_codigo_exato(self, codigo: str) -> pd.DataFrame:
+        codigo_norm = normalizar_codigo_anatel(codigo)
+        if not codigo_norm or self.dataframe.empty: return self.dataframe.iloc[0:0]
+        return self.dataframe[self.dataframe["codigo_anatel_normalizado"] == codigo_norm]
 
-def preparar_base(df: pd.DataFrame) -> pd.DataFrame:
-    if df.empty:
-        return df
-
-    col_codigo = _achar_coluna(df, CANDIDATOS_COLUNA_CODIGO)
-    col_fabricante = _achar_coluna(df, CANDIDATOS_COLUNA_FABRICANTE)
-    col_marca = _achar_coluna(df, CANDIDATOS_COLUNA_MARCA)
-    col_modelo = _achar_coluna(df, CANDIDATOS_COLUNA_MODELO)
-    col_versao = _achar_coluna(df, CANDIDATOS_COLUNA_VERSAO)
-    col_tipo = _achar_coluna(df, CANDIDATOS_COLUNA_TIPO)
-
-    if not col_codigo:
-        log_aviso("base", "Não encontrei coluna de número/código de homologação na base.")
-        return pd.DataFrame()
-
-    base = pd.DataFrame()
-
-    base["codigo_anatel_norm"] = df[col_codigo].map(normalizar_codigo_anatel)
-    base["fabricante_base"] = df[col_fabricante] if col_fabricante else ""
-    base["marca_base"] = df[col_marca] if col_marca else ""
-    base["modelo_base"] = df[col_modelo] if col_modelo else ""
-    base["versao_base"] = df[col_versao] if col_versao else ""
-    base["tipo_base"] = df[col_tipo] if col_tipo else ""
-
-    base = base[base["codigo_anatel_norm"].astype(bool)]
-    base = base.drop_duplicates("codigo_anatel_norm")
-
-    log_ok("base", f"Base carregada: {len(base)} códigos únicos.")
-
-    return base
-
-
-def buscar_codigo_na_base(base: pd.DataFrame, codigo: str) -> dict[str, Any] | None:
-    if base is None or base.empty or not codigo:
+def carregar_base_anatel(caminho: str | Path | None) -> BaseAnatel | None:
+    if not caminho:
+        log("base anatel", "Base não informada.", nivel="AVISO")
         return None
+    df = _ler_csv(caminho)
+    if df.empty: raise ValueError("Base vazia.")
+    col_cod = _achar_coluna(df, [["numero", "homolog"], ["codigo", "anatel"], ["homologacao"]])
+    if not col_cod: raise ValueError("Coluna de homologação não encontrada.")
+    col_fab = _achar_coluna(df, [["nome", "fabricante"], ["fabricante"], ["marca"]])
+    col_mod = _achar_coluna(df, [["modelo"], ["nome", "modelo"]])
+    col_sit = _achar_coluna_exata(df, "Situação do Requerimento")
+    
+    base = df.copy()
+    base["codigo_anatel_normalizado"] = base[col_cod].map(normalizar_codigo_anatel)
+    base = base[base["codigo_anatel_normalizado"].astype(str).str.len() == 12].copy()
+    base = base.drop_duplicates(subset=["codigo_anatel_normalizado"], keep="first")
+    
+    log("base anatel", f"Registros carregados: {len(base)}")
+    return BaseAnatel(base, col_cod, col_fab, col_mod, col_sit)
 
-    achados = base[base["codigo_anatel_norm"] == codigo]
+def _normalizar_situacao(valor: Any) -> str:
+    t = normalizar_texto(valor)
+    if "cancelad" in t: return "CANCELADA"
+    if "suspens" in t: return "SUSPENSA"
+    if "emitid" in t: return "EMITIDA"
+    return "NAO_INFORMADA" if not t else "OUTRA"
 
-    if achados.empty:
-        return None
+def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAnatel | None) -> dict[str, str]:
+    codigo_norm = normalizar_codigo_anatel(codigo)
+    res = {
+        "codigo_anatel": str(codigo or ""), "codigo_anatel_normalizado": codigo_norm,
+        "codigo_base": "", "codigo_confere_base": "NAO", "marca_confere_base": "NAO",
+        "modelo_confere_base": "NAO", "situacao_requerimento_base": "",
+        "situacao_requerimento_normalizada": "NAO_INFORMADA", "requerimento_emitido": "NAO",
+        "anatel_em_ordem": "NAO", "situacao_anatel": "NAO_INFORMADO",
+        "motivo_anatel": "Código Anatel não localizado no anúncio.", "fabricante_base": "", "modelo_base": ""
+    }
+    
+    if not codigo_norm: return res
+    if base is None:
+        res.update({"situacao_anatel": "NAO_VERIFICADO", "motivo_anatel": "Nenhuma base fornecida."})
+        return res
 
-    return achados.iloc[0].to_dict()
+    encontrados = base.buscar_codigo_exato(codigo_norm)
+    if encontrados.empty:
+        res.update({"situacao_anatel": "IRREGULAR", "motivo_anatel": "Código não possui correspondência na base."})
+        return res
+
+    linha = encontrados.iloc[0]
+    fab_base = str(linha.get(base.coluna_fabricante) or "") if base.coluna_fabricante else ""
+    mod_base = str(linha.get(base.coluna_modelo) or "") if base.coluna_modelo else ""
+    sit_base = str(linha.get(base.coluna_situacao_requerimento) or "")
+    sit_norm = _normalizar_situacao(sit_base)
+
+    res.update({
+        "codigo_base": str(linha.get("codigo_anatel_normalizado") or ""),
+        "codigo_confere_base": "SIM", "fabricante_base": fab_base, "modelo_base": mod_base,
+        "situacao_requerimento_base": sit_base, "situacao_requerimento_normalizada": sit_norm,
+    })
+
+    marca_conf = _texto_compativel(marca, fab_base)
+    mod_conf = _texto_compativel(modelo, mod_base)
+
+    res.update({
+        "marca_confere_base": "SIM" if marca_conf else "NAO",
+        "modelo_confere_base": "SIM" if mod_conf else "NAO",
+        "requerimento_emitido": "SIM" if sit_norm == "EMITIDA" else "NAO"
+    })
+
+    if sit_norm in {"CANCELADA", "SUSPENSA"}:
+        res.update({
+            "situacao_anatel": "IRREGULAR",
+            "motivo_anatel": f"Situação do Requerimento: '{sit_base}'. Homologação suspensa ou cancelada não é válida."
+        })
+        return res
+
+    if sit_norm != "EMITIDA" or not marca_conf or not mod_conf:
+        res.update({
+            "situacao_anatel": "REVISAR",
+            "motivo_anatel": "Homologação necessita revisão (dados não conferem integralmente ou status diferente de Emitida)."
+        })
+        return res
+
+    res.update({
+        "anatel_em_ordem": "SIM", "situacao_anatel": "REGULAR",
+        "motivo_anatel": "Homologação Emitida; dados do anúncio conferem com a base."
+    })
+    return res

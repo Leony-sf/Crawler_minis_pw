@@ -1,0 +1,53 @@
+2026/07/22-12:13:29.352 6c68 Creating DB C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\amazon_crawler\chrome_profiles\amazon_profile\Default\Session Storage since it was missing.
+2026/07/22-12:13:29.557 6c68 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\amazon_crawler\chrome_profiles\amazon_profile\Default\Session Storage/MANIFEST-000001
+2026/07/22-12:15:35.283 6c68 Level-0 table #5: started
+2026/07/22-12:15:35.366 6c68 Level-0 table #5: 27517 bytes OK
+2026/07/22-12:15:35.379 6c68 Delete type=0 #3
+2026/07/22-12:17:35.265 6c68 Level-0 table #7: started
+2026/07/22-12:17:35.298 6c68 Level-0 table #7: 29382 bytes OK
+2026/07/22-12:17:35.328 6c68 Delete type=0 #4
+2026/07/22-12:19:20.174 6c68 Level-0 table #9: started
+2026/07/22-12:19:20.242 6c68 Level-0 table #9: 23648 bytes OK
+2026/07/22-12:19:20.269 6c68 Delete type=0 #6
+2026/07/22-12:21:31.015 6c68 Level-0 table #11: started
+2026/07/22-12:21:31.040 6c68 Level-0 table #11: 25881 bytes OK
+2026/07/22-12:21:31.053 6c68 Delete type=0 #8
+2026/07/22-12:24:10.301 6c68 Level-0 table #13: started
+2026/07/22-12:24:10.332 6c68 Level-0 table #13: 30266 bytes OK
+2026/07/22-12:24:10.355 6c68 Delete type=0 #10
+2026/07/22-12:26:17.738 6c68 Level-0 table #15: started
+2026/07/22-12:26:17.759 6c68 Level-0 table #15: 29818 bytes OK
+2026/07/22-12:26:17.764 6c68 Delete type=0 #12
+2026/07/22-12:26:17.782 6c68 Compacting 4@0 + 1@1 files
+2026/07/22-12:26:17.802 6c68 Generated table #16@0: 623 keys, 33345 bytes
+2026/07/22-12:26:17.803 6c68 Compacted 4@0 + 1@1 files => 33345 bytes
+2026/07/22-12:26:17.805 6c68 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/07/22-12:26:17.806 6c68 Delete type=2 #7
+2026/07/22-12:26:17.807 6c68 Delete type=2 #9
+2026/07/22-12:26:17.807 6c68 Delete type=2 #11
+2026/07/22-12:26:17.808 6c68 Delete type=2 #13
+2026/07/22-12:26:17.808 6c68 Delete type=2 #15
+2026/07/22-12:28:43.996 6c68 Level-0 table #18: started
+2026/07/22-12:28:44.019 6c68 Level-0 table #18: 27044 bytes OK
+2026/07/22-12:28:44.024 6c68 Delete type=0 #14
+2026/07/22-12:31:01.028 6c68 Level-0 table #20: started
+2026/07/22-12:31:01.053 6c68 Level-0 table #20: 28767 bytes OK
+2026/07/22-12:31:01.056 6c68 Delete type=0 #17
+2026/07/22-12:32:58.341 6c68 Level-0 table #22: started
+2026/07/22-12:32:58.365 6c68 Level-0 table #22: 28606 bytes OK
+2026/07/22-12:32:58.368 6c68 Delete type=0 #19
+2026/07/22-12:35:32.758 6c68 Level-0 table #24: started
+2026/07/22-12:35:32.774 6c68 Level-0 table #24: 26267 bytes OK
+2026/07/22-12:35:32.776 6c68 Delete type=0 #21
+2026/07/22-12:35:32.780 6c68 Compacting 4@0 + 1@1 files
+2026/07/22-12:35:32.798 6c68 Generated table #25@0: 1065 keys, 36978 bytes
+2026/07/22-12:35:32.798 6c68 Compacted 4@0 + 1@1 files => 36978 bytes
+2026/07/22-12:35:32.800 6c68 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/07/22-12:35:32.801 6c68 Delete type=2 #16
+2026/07/22-12:35:32.801 6c68 Delete type=2 #18
+2026/07/22-12:35:32.801 6c68 Delete type=2 #20
+2026/07/22-12:35:32.802 6c68 Delete type=2 #22
+2026/07/22-12:35:32.802 6c68 Delete type=2 #24
+2026/07/22-12:37:53.635 6c68 Level-0 table #27: started
+2026/07/22-12:37:53.653 6c68 Level-0 table #27: 25454 bytes OK
+2026/07/22-12:37:53.656 6c68 Delete type=0 #23

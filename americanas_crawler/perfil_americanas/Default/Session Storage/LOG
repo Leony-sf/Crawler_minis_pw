@@ -1,0 +1,11 @@
+2026/07/24-09:40:55.761 5488 Creating DB C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\americanas_crawler\perfil_americanas\Default\Session Storage since it was missing.
+2026/07/24-09:40:55.929 5488 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\americanas_crawler\perfil_americanas\Default\Session Storage/MANIFEST-000001
+2026/07/24-10:07:33.765 90d0 Level-0 table #5: started
+2026/07/24-10:07:33.795 90d0 Level-0 table #5: 14494 bytes OK
+2026/07/24-10:07:33.808 90d0 Delete type=0 #3
+2026/07/24-10:26:54.925 5488 Level-0 table #7: started
+2026/07/24-10:26:54.958 5488 Level-0 table #7: 13833 bytes OK
+2026/07/24-10:26:54.979 5488 Delete type=0 #4
+2026/07/24-10:46:12.356 5488 Level-0 table #9: started
+2026/07/24-10:46:12.388 5488 Level-0 table #9: 13722 bytes OK
+2026/07/24-10:46:12.410 5488 Delete type=0 #6

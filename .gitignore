@@ -1,9 +1,32 @@
-# Ignorar caches do Python
-__pycache__/
-*.py[cod]
-*$py.class
+# ==========================================
+# SAÍDAS DOS CRAWLERS
+# ==========================================
+Saidas_shopee_*/
+Saidas_mercadolivre_*/
+saidas/
 
-# Ignorar pastas de perfis do navegador e diretórios temporários de depuração
+# ==========================================
+# ARQUIVOS DE DADOS E MÍDIA
+# ==========================================
+*.parquet
+*.csv
+*.png
+*.xlsx
+
+# ==========================================
+# DADOS DE SESSÃO E NAVEGADORES (PLAYWRIGHT)
+# ==========================================
+perfil_chrome_shopee/
 chrome_profiles/
-perfil_*/
-/chrome_debug_*/
+crawler_magalu/perfil_magalu/
+Aliexpress_mini_celulares/perfil_aliexpress/
+*perfil*/
+shopee_state_debug.json
+
+# ==========================================
+# CACHE E AMBIENTE PYTHON
+# ==========================================
+__pycache__/
+*.pyc
+venv/
+.env

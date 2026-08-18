@@ -1,0 +1,1379 @@
+/* ==========================================
+   FAMÍLIA: Samsung SS Body
+========================================== */
+
+@font-face {
+	font-family: 'SamsungSSBody';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Body_TTF/SamsungSSBody-Light.ttf') format('truetype');
+	font-weight: 300;
+	/* Light */
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'SamsungSSBody';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Body_TTF/SamsungSSBody-Regular.ttf') format('truetype');
+	font-weight: 400;
+	/* Regular */
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'SamsungSSBody';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Body_TTF/SamsungSSBody-Bold.ttf') format('truetype');
+	font-weight: 700;
+	/* Bold */
+	font-style: normal;
+}
+
+/* ==========================================
+   FAMÍLIA: Samsung SS Head
+========================================== */
+
+@font-face {
+	font-family: 'SamsungSSHead';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Head_TTF/SamsungSSHead-Light.ttf') format('truetype');
+	font-weight: 300;
+	/* Light */
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'SamsungSSHead';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Head_TTF/SamsungSSHead-Regular.ttf') format('truetype');
+	font-weight: 400;
+	/* Regular */
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'SamsungSSHead';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Head_TTF/SamsungSSHead-Medium.ttf') format('truetype');
+	font-weight: 500;
+	/* Medium */
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'SamsungSSHead';
+	src: url('SamsungSS/1.%20For_General%20User/Samsung%20SS%20Head_TTF/SamsungSSHead-Bold.ttf') format('truetype');
+	font-weight: 700;
+	/* Bold */
+	font-style: normal;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	margin: 0;
+}
+
+.wrapperSamsung {
+	font-family: SamsungSSBody, sans-serif;
+	background: #fff;
+	color: #000;
+	max-width: 100%;
+	margin: auto;
+	overflow: hidden;
+}
+
+.wrapperSamsung p {
+	font-weight: 400;
+	margin: 0 0 min(1.8vw, 18px);
+	padding-bottom: 0 !important;
+	font-size: min(1.8vw, 18px);
+	line-height: min(2.5vw, 24px);
+}
+
+.wrapperSamsung p small {
+	display: block;
+	font-size: min(1.8vw, 12px);
+	line-height: min(2.5vw, 18px);
+}
+
+.wrapperSamsung h2 {
+	margin: 0;
+	font-size: min(4vw, 50px);
+	line-height: min(5vw, 52px);
+	font-family: SamsungSSHead, sans-serif;
+	font-weight: bold;
+	padding: calc(20px + 4%) 0;
+	text-align: center;
+}
+
+.wrapperSamsung h3 {
+	margin: 0 0 2.5%;
+	font-size: min(5vw, 50px);
+	line-height: min(6vw, 52px);
+	font-family: SamsungSSHead, sans-serif;
+	font-weight: medium;
+}
+
+.wrapperSamsung sup {
+	font-size: .5em;
+	line-height: .5em;
+}
+
+.wrapperSamsung h4 {
+	font-weight: 700;
+	margin: 0 0 2.5%;
+	font-size: min(2vw, 22px);
+	line-height: min(3vw, 26px);
+	font-family: SamsungSSBody, sans-serif;
+	font-weight: medium;
+}
+
+.wrapperSamsung .containerSamsung {
+	overflow: hidden;
+	max-width: 85%;
+	padding: calc(20px + 3%) 15px;
+	position: relative;
+	z-index: 1;
+}
+
+.wrapperSamsung input {
+	display: none;
+}
+
+/* HEADER */
+
+/* MENU */
+
+#menu-samsung {
+
+}
+
+#menu-samsung .covererSamsung {
+	padding: 0 !important;
+}
+
+#menu-samsung a {
+	display: block;
+	color: #fff;
+	text-decoration: none;
+	padding: 0% 0 5%;
+	opacity: .75;
+	transition: opacity .3s ease-in-out 0s;
+}
+
+#menu-samsung a:hover {
+	opacity: 1;
+}
+
+#menu-samsung h3{
+	color: #fff;
+	text-align: center;
+}
+
+#menu-samsung p {
+	display: block;
+	font-size: 14px;
+	font-weight: normal;
+}
+
+#menu-samsung img {
+	display: block;
+	margin-right: 15px;
+	width: 60px;
+}
+
+#menu-samsung a{
+	height: 100%;
+}
+
+#menu-samsung .menu-custom{
+	height: 100%;
+	display: flex;
+    align-items: center;
+	background-color: rgba(0, 0, 0, 0.10);
+	padding: 1rem 0.5rem;
+	border: 1px solid #AAA;
+	border-radius: 16px;
+	text-align: left;
+}
+
+#menu-samsung .menu-custom p{
+	margin: 0;
+}
+
+#intro-samsung h1 {
+	text-align: center;
+    margin: 40px 0;
+}
+
+#menu-samsung .containerSamsung {
+    padding-top: 20px;
+}
+
+/* CONTENT */
+
+.wrapperSamsung img {
+	width: 100%;
+	display: block;
+}
+
+.d-flex-samsung {
+	display: flex;
+	align-items: center;
+}
+
+.videoSamsung{
+	width: 100%;
+	height: auto;
+}
+
+#bloco0-samsung,
+#bloco1-samsung,
+#bloco2-samsung,
+#bloco3-samsung,
+#bloco4-samsung,
+#bloco5-samsung,
+#bloco6-samsung,
+#bloco7-samsung,
+#bloco8-samsung,
+#bloco9-samsung,
+#bloco13-samsung {
+	text-align: center;
+}
+
+#bloco8-samsung,
+#bloco3-samsung {
+	background: #000;
+	color: #fff
+}
+
+
+#bloco8-samsung .colSamsung-lg-6,
+#bloco9-samsung .colSamsung-lg-6,
+#bloco10-samsung .colSamsung-lg-6{
+	margin: auto;
+}
+
+.colSamsung-lg-6 h3,
+.colSamsung-lg-6 h4 {
+	margin: calc(25px + 0.5em) 0;
+}
+
+.containerSamsung img{
+	margin: 4em 0 0;
+}
+
+#bloco3-samsung label{
+	cursor: pointer;
+}
+
+#bloco3-samsung #images{
+	position: relative;
+}
+
+#bloco3-samsung #images img{
+	position: absolute;
+	top: 12.5%;
+	left: 0;
+	width: 100%;
+	height: auto;
+	opacity: 0;
+	transition: all ease-in-out .3s;
+}
+
+#bloco3-samsung #img-1:checked ~ #images img:nth-of-type(1),
+#bloco3-samsung #img-2:checked ~ #images img:nth-of-type(2),
+#bloco3-samsung #img-3:checked ~ #images img:nth-of-type(3),
+#bloco3-samsung #img-4:checked ~ #images img:nth-of-type(4){
+	opacity: 1;
+}
+
+
+.containerSamsung-slide {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* FOOTER */
+#footer-samsung {
+	background: #000;
+	color: #fff;
+}
+
+#footer-samsung p,
+#footer-samsung li {
+	text-align: justify;
+	font-size: calc(5px + 0.3vw);
+	line-height: 2em;
+}
+
+#footer-samsung ul,
+#footer-samsung ol {
+	margin: 0;
+	padding: 0;
+	font-weight: 400;
+	margin: 0 0 min(1.8vw, 18px);
+}
+
+#footer-samsung li {
+	margin: 0;
+	padding: 0;
+}
+
+#footer-samsung img {
+	float: left;
+	margin-right: 20px;
+	margin-bottom: 5px;
+	width: 95px;
+}
+
+#footer-samsung .containerSamsung {
+	padding: calc(20px + 2%) 15px;
+}
+.wrapperSamsung .desktop {
+	display: block !important;
+}
+
+.wrapperSamsung .mobile {
+	display: none !important;
+}
+
+@media (max-width: 767.98px) {
+	.wrapperSamsung .containerSamsung {
+		text-align: center;
+		padding: calc(15px + 2%) 15px !important;
+		max-width: 100%;
+	}
+
+	.wrapperSamsung .containerSamsung.containerSamsung-slide{
+		padding-bottom: 0 !important;
+	}
+
+	.wrapperSamsung .desktop {
+		display: none !important;
+	}
+
+	.wrapperSamsung .mobile {
+		display: block !important;
+	}
+
+	.colSamsung-md-6,
+	.colSamsung-md-5 {
+		text-align: center;
+	}
+
+	.wrapperSamsung h3 {
+		font-size: calc(30px + 3vw);
+		line-height: calc(40px + 3vw)
+	}
+
+	.wrapperSamsung h4 {
+		font-size: calc(8px + 2vw);
+		line-height: calc(16px + 2vw);
+	}
+
+	.wrapperSamsung p {
+		font-size: calc(8px + 1.5vw);
+		line-height: calc(14px + 1.5vw);
+	}
+
+	.wrapperSamsung p small {
+		font-size: calc(6px + 1vw);
+		line-height: calc(10px + 1vw);
+	}
+
+	#menu-samsung a {
+		padding: 0% 0 5%;
+	}
+}
+
+
+#anima-inteligente-samsung {
+	position: relative;
+}
+
+/*Downloaded from https://www.codeseek.co/trungk18/responsive-slideshow-carousel-with-only-html5-andamp-css3-EydyoL */
+/*---- NUMBER OF SLIDE CONFIGURATION ----*/
+
+.inner {
+	width: 600%;
+	line-height: 0;
+}
+
+.inner article {
+	width: 16.6%;
+	float: left;
+	position: relative;
+}
+
+/*---- SET UP CONTROL ----*/
+.slider-prev-next-control {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	-webkit-transform: translateY(-50%);
+	-moz-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	-o-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.slider-prev-next-control label {
+	background-color: rgba(227, 227, 227, 0.7);
+	display: none;
+	width: 60px;
+	height: 60px;
+	border-radius: 160px;
+	cursor: pointer;
+}
+
+.slider-dot-control {
+	position: absolute;
+	border-radius: 40px;
+	padding: 4px 8px;
+	bottom: -50px;
+	left: 50%;
+	text-align: center;
+	transform: translateX(-50%);
+	display: flex;
+}
+
+.slider-dot-control label {
+	cursor: pointer;
+	border-radius: 50px;
+	width: 15px;
+	height: 15px;
+	background: #fff;
+	opacity: .5;
+	transition: all .3s ease-in-out;
+	margin: 4px;
+}
+
+.slider-dot-control label:hover {
+	opacity: 1;
+}
+
+.carousel{
+	padding-bottom: 50px;
+	background-color: #000;
+}
+
+/* Slider Styling */
+.slider-wrapper {
+	position: relative;
+	overflow: hidden;
+	background-color: #000;
+}
+
+.slider-wrapper .inner {
+	transform: translateZ(0);
+	transition: all 800ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.slider-wrapper img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/*---- SET POSITION FOR SLIDE ----*/
+
+.slider-prev-next-control label::after {
+	display: block;
+}
+
+#slide1:checked~.slider-prev-next-control label:nth-child(2)::after,
+#slide2:checked~.slider-prev-next-control label:nth-child(3)::after,
+#slide3:checked~.slider-prev-next-control label:nth-child(4)::after,
+#slide4:checked~.slider-prev-next-control label:nth-child(5)::after,
+#slide5:checked~.slider-prev-next-control label:nth-child(6)::after,
+#slide6:checked~.slider-prev-next-control label:nth-child(7)::after,
+#slide7:checked~.slider-prev-next-control label:nth-child(8)::after,
+#slide8:checked~.slider-prev-next-control label:nth-child(9)::after,
+#slide9:checked~.slider-prev-next-control label:nth-child(10)::after,
+#slide10:checked~.slider-prev-next-control label:nth-child(11)::after,
+#slide11:checked~.slider-prev-next-control label:nth-child(12)::after,
+#slide12:checked~.slider-prev-next-control label:nth-child(13)::after,
+#slide13:checked~.slider-prev-next-control label:nth-child(14)::after,
+#slide14:checked~.slider-prev-next-control label:nth-child(15)::after,
+#slide15:checked~.slider-prev-next-control label:nth-child(16)::after,
+#slide16:checked~.slider-prev-next-control label:nth-child(17)::after,
+#slide17:checked~.slider-prev-next-control label:nth-child(18)::after,
+#slide18:checked~.slider-prev-next-control label:nth-child(19)::after,
+#slide19:checked~.slider-prev-next-control label:nth-child(20)::after,
+#slide20:checked~.slider-prev-next-control label:nth-child(1)::after {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background: url(../img/right-arrow-samsung.png) no-repeat center center;
+	background-size: 20px;
+}
+
+#slide1:checked~.slider-prev-next-control label:nth-child(2),
+#slide2:checked~.slider-prev-next-control label:nth-child(3),
+#slide3:checked~.slider-prev-next-control label:nth-child(4),
+#slide4:checked~.slider-prev-next-control label:nth-child(5),
+#slide5:checked~.slider-prev-next-control label:nth-child(6),
+#slide6:checked~.slider-prev-next-control label:nth-child(7),
+#slide7:checked~.slider-prev-next-control label:nth-child(8),
+#slide8:checked~.slider-prev-next-control label:nth-child(9),
+#slide9:checked~.slider-prev-next-control label:nth-child(10),
+#slide10:checked~.slider-prev-next-control label:nth-child(11),
+#slide11:checked~.slider-prev-next-control label:nth-child(12),
+#slide12:checked~.slider-prev-next-control label:nth-child(13),
+#slide13:checked~.slider-prev-next-control label:nth-child(14),
+#slide14:checked~.slider-prev-next-control label:nth-child(15),
+#slide15:checked~.slider-prev-next-control label:nth-child(16),
+#slide16:checked~.slider-prev-next-control label:nth-child(17),
+#slide17:checked~.slider-prev-next-control label:nth-child(18),
+#slide18:checked~.slider-prev-next-control label:nth-child(19),
+#slide19:checked~.slider-prev-next-control label:nth-child(20),
+#slide20:checked~.slider-prev-next-control label:nth-child(1) {
+	display: block;
+	float: right;
+	margin-right: 10px;
+}
+
+#slide2:checked~.slider-prev-next-control label:nth-child(1),
+#slide3:checked~.slider-prev-next-control label:nth-child(2),
+#slide4:checked~.slider-prev-next-control label:nth-child(3),
+#slide5:checked~.slider-prev-next-control label:nth-child(4),
+#slide6:checked~.slider-prev-next-control label:nth-child(5),
+#slide7:checked~.slider-prev-next-control label:nth-child(6),
+#slide8:checked~.slider-prev-next-control label:nth-child(7),
+#slide9:checked~.slider-prev-next-control label:nth-child(8),
+#slide10:checked~.slider-prev-next-control label:nth-child(9),
+#slide11:checked~.slider-prev-next-control label:nth-child(10),
+#slide12:checked~.slider-prev-next-control label:nth-child(11),
+#slide13:checked~.slider-prev-next-control label:nth-child(12),
+#slide14:checked~.slider-prev-next-control label:nth-child(13),
+#slide15:checked~.slider-prev-next-control label:nth-child(14),
+#slide16:checked~.slider-prev-next-control label:nth-child(15),
+#slide17:checked~.slider-prev-next-control label:nth-child(16),
+#slide18:checked~.slider-prev-next-control label:nth-child(17),
+#slide19:checked~.slider-prev-next-control label:nth-child(18),
+#slide20:checked~.slider-prev-next-control label:nth-child(19),
+#slide1:checked~.slider-prev-next-control label:nth-child(20) {
+	display: block;
+	float: left;
+	margin-left: 10px;
+}
+
+#slide2:checked~.slider-prev-next-control label:nth-child(1)::after,
+#slide3:checked~.slider-prev-next-control label:nth-child(2)::after,
+#slide4:checked~.slider-prev-next-control label:nth-child(3)::after,
+#slide5:checked~.slider-prev-next-control label:nth-child(4)::after,
+#slide6:checked~.slider-prev-next-control label:nth-child(5)::after,
+#slide7:checked~.slider-prev-next-control label:nth-child(6)::after,
+#slide8:checked~.slider-prev-next-control label:nth-child(7)::after,
+#slide9:checked~.slider-prev-next-control label:nth-child(8)::after,
+#slide10:checked~.slider-prev-next-control label:nth-child(9)::after,
+#slide11:checked~.slider-prev-next-control label:nth-child(10)::after,
+#slide12:checked~.slider-prev-next-control label:nth-child(11)::after,
+#slide13:checked~.slider-prev-next-control label:nth-child(12)::after,
+#slide14:checked~.slider-prev-next-control label:nth-child(13)::after,
+#slide15:checked~.slider-prev-next-control label:nth-child(14)::after,
+#slide16:checked~.slider-prev-next-control label:nth-child(15)::after,
+#slide17:checked~.slider-prev-next-control label:nth-child(16)::after,
+#slide18:checked~.slider-prev-next-control label:nth-child(17)::after,
+#slide19:checked~.slider-prev-next-control label:nth-child(18)::after,
+#slide20:checked~.slider-prev-next-control label:nth-child(19)::after,
+#slide1:checked~.slider-prev-next-control label:nth-child(20)::after {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background: url(../img/left-arrow-samsung.png) no-repeat center center;
+	background-size: 20px;
+	opacity: 1;
+}
+
+#slide1:checked~.slider-wrapper .inner {
+	margin-left: 0%;
+}
+
+#slide2:checked~.slider-wrapper .inner {
+	margin-left: -100%;
+}
+
+#slide3:checked~.slider-wrapper .inner {
+	margin-left: -200%;
+}
+
+#slide4:checked~.slider-wrapper .inner {
+	margin-left: -300%;
+}
+
+#slide5:checked~.slider-wrapper .inner {
+	margin-left: -400%;
+}
+
+#slide6:checked~.slider-wrapper .inner {
+	margin-left: -500%;
+}
+
+#slide7:checked~.slider-wrapper .inner {
+	margin-left: -600%;
+}
+
+#slide8:checked~.slider-wrapper .inner {
+	margin-left: -700%;
+}
+
+#slide9:checked~.slider-wrapper .inner {
+	margin-left: -800%;
+}
+
+#slide10:checked~.slider-wrapper .inner {
+	margin-left: -900%;
+}
+
+#slide11:checked~.slider-wrapper .inner {
+	margin-left: -1000%;
+}
+
+#slide12:checked~.slider-wrapper .inner {
+	margin-left: -1100%;
+}
+
+#slide13:checked~.slider-wrapper .inner {
+	margin-left: -1200%;
+}
+
+#slide14:checked~.slider-wrapper .inner {
+	margin-left: -1300%;
+}
+
+#slide15:checked~.slider-wrapper .inner {
+	margin-left: -1400%;
+}
+
+#slide16:checked~.slider-wrapper .inner {
+	margin-left: -1500%;
+}
+
+#slide17:checked~.slider-wrapper .inner {
+	margin-left: -1600%;
+}
+
+#slide18:checked~.slider-wrapper .inner {
+	margin-left: -1700%;
+}
+
+#slide19:checked~.slider-wrapper .inner {
+	margin-left: -1800%;
+}
+
+#slide20:checked~.slider-wrapper .inner {
+	margin-left: -1900%;
+}
+
+#slide1:checked~.slider-dot-control label:nth-child(1),
+#slide2:checked~.slider-dot-control label:nth-child(2),
+#slide3:checked~.slider-dot-control label:nth-child(3),
+#slide4:checked~.slider-dot-control label:nth-child(4),
+#slide5:checked~.slider-dot-control label:nth-child(5),
+#slide6:checked~.slider-dot-control label:nth-child(6) {
+	opacity: 1;
+}
+
+
+/*---- TABLET ----*/
+@media only screen and (max-width: 850px) and (min-width: 450px) {
+	.slider-wrapper {
+		border-radius: 0;
+	}
+}
+
+/*---- MOBILE----*/
+@media only screen and (max-width: 450px) {
+	.slider-wrapper {
+		border-radius: 0;
+	}
+
+	.slider-wrapper .info {
+		opacity: 0;
+	}
+
+	.slider-prev-next-control label{
+		width: 40px;
+		height: 40px;	
+	}
+	.slider-prev-next-control label::after{
+		background-size: 16px !important;
+	}
+}
+
+
+#anima-inteligente-samsung-2 {
+	position: relative;
+}
+
+/*Downloaded from https://www.codeseek.co/trungk18/responsive-slideshow-carousel-with-only-html5-andamp-css3-EydyoL */
+/*---- NUMBER OF SLIDE CONFIGURATION ----*/
+
+.inner-2 {
+	width: 265%;
+	line-height: 0;
+}
+
+.inner-2 article {
+	width: 25%;
+	float: left;
+	position: relative;
+}
+
+/*---- SET UP CONTROL ----*/
+.slider-prev-next-control-2 {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	-webkit-transform: translateY(-50%);
+	-moz-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	-o-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.slider-prev-next-control-2 label {
+	background-color: rgba(227, 227, 227, 0.7);
+	display: none;
+	width: 60px;
+	height: 60px;
+	border-radius: 160px;
+	cursor: pointer;
+}
+
+.slider-dot-control-2 {
+	position: absolute;
+	border-radius: 40px;
+	padding: 4px 8px;
+	bottom: -50px;
+	left: 50%;
+	text-align: center;
+	transform: translateX(-50%);
+	display: flex;
+}
+
+.slider-dot-control-2 label {
+	cursor: pointer;
+	border-radius: 50px;
+	width: 15px;
+	height: 15px;
+	background: #000;
+	opacity: .5;
+	transition: all .3s ease-in-out;
+	margin: 4px;
+}
+
+.slider-dot-control-2 label:hover {
+	opacity: 1;
+}
+
+/* Slider Styling */
+.slider-wrapper-2 {
+	position: relative;
+	overflow: hidden;
+	margin-bottom: 50px;
+}
+
+.slider-wrapper-2 .inner-2 {
+	transform: translateZ(0);
+	transition: all 800ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.slider-wrapper-2 img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/*---- SET POSITION FOR SLIDE ----*/
+
+.slider-prev-next-control-2 label::after {
+	display: block;
+}
+
+#slide1-2:checked~.slider-prev-next-control-2 label:nth-child(2)::after,
+#slide2-2:checked~.slider-prev-next-control-2 label:nth-child(3)::after,
+#slide3-2:checked~.slider-prev-next-control-2 label:nth-child(4)::after,
+#slide4-2:checked~.slider-prev-next-control-2 label:nth-child(5)::after,
+#slide5-2:checked~.slider-prev-next-control-2 label:nth-child(6)::after,
+#slide6-2:checked~.slider-prev-next-control-2 label:nth-child(7)::after,
+#slide7-2:checked~.slider-prev-next-control-2 label:nth-child(8)::after,
+#slide8-2:checked~.slider-prev-next-control-2 label:nth-child(9)::after,
+#slide9-2:checked~.slider-prev-next-control-2 label:nth-child(10)::after,
+#slide10-2:checked~.slider-prev-next-control-2 label:nth-child(11)::after,
+#slide11-2:checked~.slider-prev-next-control-2 label:nth-child(12)::after,
+#slide12-2:checked~.slider-prev-next-control-2 label:nth-child(13)::after,
+#slide13-2:checked~.slider-prev-next-control-2 label:nth-child(14)::after,
+#slide14-2:checked~.slider-prev-next-control-2 label:nth-child(15)::after,
+#slide15-2:checked~.slider-prev-next-control-2 label:nth-child(16)::after,
+#slide16-2:checked~.slider-prev-next-control-2 label:nth-child(17)::after,
+#slide17-2:checked~.slider-prev-next-control-2 label:nth-child(18)::after,
+#slide18-2:checked~.slider-prev-next-control-2 label:nth-child(19)::after,
+#slide19-2:checked~.slider-prev-next-control-2 label:nth-child(20)::after,
+#slide20-2:checked~.slider-prev-next-control-2 label:nth-child(1)::after {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background: url(../img/right-arrow-samsung.png) no-repeat center center;
+	background-size: 20px;
+}
+
+#slide1-2:checked~.slider-prev-next-control-2 label:nth-child(2),
+#slide2-2:checked~.slider-prev-next-control-2 label:nth-child(3),
+#slide3-2:checked~.slider-prev-next-control-2 label:nth-child(4),
+#slide4-2:checked~.slider-prev-next-control-2 label:nth-child(5),
+#slide5-2:checked~.slider-prev-next-control-2 label:nth-child(6),
+#slide6-2:checked~.slider-prev-next-control-2 label:nth-child(7),
+#slide7-2:checked~.slider-prev-next-control-2 label:nth-child(8),
+#slide8-2:checked~.slider-prev-next-control-2 label:nth-child(9),
+#slide9-2:checked~.slider-prev-next-control-2 label:nth-child(10),
+#slide10-2:checked~.slider-prev-next-control-2 label:nth-child(11),
+#slide11-2:checked~.slider-prev-next-control-2 label:nth-child(12),
+#slide12-2:checked~.slider-prev-next-control-2 label:nth-child(13),
+#slide13-2:checked~.slider-prev-next-control-2 label:nth-child(14),
+#slide14-2:checked~.slider-prev-next-control-2 label:nth-child(15),
+#slide15-2:checked~.slider-prev-next-control-2 label:nth-child(16),
+#slide16-2:checked~.slider-prev-next-control-2 label:nth-child(17),
+#slide17-2:checked~.slider-prev-next-control-2 label:nth-child(18),
+#slide18-2:checked~.slider-prev-next-control-2 label:nth-child(19),
+#slide19-2:checked~.slider-prev-next-control-2 label:nth-child(20),
+#slide20-2:checked~.slider-prev-next-control-2 label:nth-child(1) {
+	display: block;
+	float: right;
+	margin-right: 10px;
+}
+
+#slide2-2:checked~.slider-prev-next-control-2 label:nth-child(1),
+#slide3-2:checked~.slider-prev-next-control-2 label:nth-child(2),
+#slide4-2:checked~.slider-prev-next-control-2 label:nth-child(3),
+#slide5-2:checked~.slider-prev-next-control-2 label:nth-child(4),
+#slide6-2:checked~.slider-prev-next-control-2 label:nth-child(5),
+#slide7-2:checked~.slider-prev-next-control-2 label:nth-child(6),
+#slide8-2:checked~.slider-prev-next-control-2 label:nth-child(7),
+#slide9-2:checked~.slider-prev-next-control-2 label:nth-child(8),
+#slide10-2:checked~.slider-prev-next-control-2 label:nth-child(9),
+#slide11-2:checked~.slider-prev-next-control-2 label:nth-child(10),
+#slide12-2:checked~.slider-prev-next-control-2 label:nth-child(11),
+#slide13-2:checked~.slider-prev-next-control-2 label:nth-child(12),
+#slide14-2:checked~.slider-prev-next-control-2 label:nth-child(13),
+#slide15-2:checked~.slider-prev-next-control-2 label:nth-child(14),
+#slide16-2:checked~.slider-prev-next-control-2 label:nth-child(15),
+#slide17-2:checked~.slider-prev-next-control-2 label:nth-child(16),
+#slide18-2:checked~.slider-prev-next-control-2 label:nth-child(17),
+#slide19-2:checked~.slider-prev-next-control-2 label:nth-child(18),
+#slide20-2:checked~.slider-prev-next-control-2 label:nth-child(19),
+#slide1-2:checked~.slider-prev-next-control-2 label:nth-child(20) {
+	display: block;
+	float: left;
+	margin-left: 10px;
+}
+
+#slide2-2:checked~.slider-prev-next-control-2 label:nth-child(1)::after,
+#slide3-2:checked~.slider-prev-next-control-2 label:nth-child(2)::after,
+#slide4-2:checked~.slider-prev-next-control-2 label:nth-child(3)::after,
+#slide5-2:checked~.slider-prev-next-control-2 label:nth-child(4)::after,
+#slide6-2:checked~.slider-prev-next-control-2 label:nth-child(5)::after,
+#slide7-2:checked~.slider-prev-next-control-2 label:nth-child(6)::after,
+#slide8-2:checked~.slider-prev-next-control-2 label:nth-child(7)::after,
+#slide9-2:checked~.slider-prev-next-control-2 label:nth-child(8)::after,
+#slide10-2:checked~.slider-prev-next-control-2 label:nth-child(9)::after,
+#slide11-2:checked~.slider-prev-next-control-2 label:nth-child(10)::after,
+#slide12-2:checked~.slider-prev-next-control-2 label:nth-child(11)::after,
+#slide13-2:checked~.slider-prev-next-control-2 label:nth-child(12)::after,
+#slide14-2:checked~.slider-prev-next-control-2 label:nth-child(13)::after,
+#slide15-2:checked~.slider-prev-next-control-2 label:nth-child(14)::after,
+#slide16-2:checked~.slider-prev-next-control-2 label:nth-child(15)::after,
+#slide17-2:checked~.slider-prev-next-control-2 label:nth-child(16)::after,
+#slide18-2:checked~.slider-prev-next-control-2 label:nth-child(17)::after,
+#slide19-2:checked~.slider-prev-next-control-2 label:nth-child(18)::after,
+#slide20-2:checked~.slider-prev-next-control-2 label:nth-child(19)::after,
+#slide1-2:checked~.slider-prev-next-control-2 label:nth-child(20)::after {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background: url(../img/left-arrow-samsung.png) no-repeat center center;
+	background-size: 20px;
+	opacity: 1;
+}
+
+#slide1-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: 0%;
+}
+
+#slide2-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -67%;
+}
+
+#slide3-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -97%;
+}
+
+#slide4-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -165%;
+}
+
+#slide5-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -400%;
+}
+
+#slide6-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -500%;
+}
+
+#slide7-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -600%;
+}
+
+#slide8-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -700%;
+}
+
+#slide9-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -800%;
+}
+
+#slide10-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -900%;
+}
+
+#slide11-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1000%;
+}
+
+#slide12-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1100%;
+}
+
+#slide13-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1200%;
+}
+
+#slide14-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1300%;
+}
+
+#slide15-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1400%;
+}
+
+#slide16-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1500%;
+}
+
+#slide17-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1600%;
+}
+
+#slide18-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1700%;
+}
+
+#slide19-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1800%;
+}
+
+#slide20-2:checked~.slider-wrapper-2 .inner-2 {
+	margin-left: -1900%;
+}
+
+#slide1-2:checked~.slider-dot-control-2 label:nth-child(1),
+#slide2-2:checked~.slider-dot-control-2 label:nth-child(2),
+#slide3-2:checked~.slider-dot-control-2 label:nth-child(3),
+#slide4-2:checked~.slider-dot-control-2 label:nth-child(4),
+#slide5-2:checked~.slider-dot-control-2 label:nth-child(5) {
+	opacity: 1;
+}
+
+
+/*---- TABLET ----*/
+@media only screen and (max-width: 850px) and (min-width: 450px) {
+	.slider-wrapper-2 {
+		border-radius: 0;
+	}
+}
+
+/*---- MOBILE----*/
+@media only screen and (max-width: 450px) {
+	.slider-wrapper-2 {
+		border-radius: 0;
+	}
+
+	.slider-wrapper-2 .info {
+		opacity: 0;
+	}
+
+	.slider-prev-next-control-2 label{
+		width: 40px;
+		height: 40px;	
+	}
+	.slider-prev-next-control-2 label::after{
+		background-size: 16px !important;
+	}
+}
+
+
+#anima-inteligente-samsung-3 {
+	position: relative;
+}
+
+/*Downloaded from https://www.codeseek.co/trungk18/responsive-slideshow-carousel-with-only-html5-andamp-css3-EydyoL */
+/*---- NUMBER OF SLIDE CONFIGURATION ----*/
+
+.inner-3 {
+	width: 500%;
+	line-height: 0;
+}
+
+.inner-3 article {
+	width: 13.3%;
+	float: left;
+	position: relative;
+}
+/*---- SET UP CONTROL ----*/
+.slider-prev-next-control-3 {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	-webkit-transform: translateY(-50%);
+	-moz-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	-o-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.slider-prev-next-control-3 label {
+	background-color: rgba(227, 227, 227, 0.7);
+	display: none;
+	width: 60px;
+	height: 60px;
+	border-radius: 160px;
+	cursor: pointer;
+}
+
+.slider-dot-control-3 {
+	position: absolute;
+	border-radius: 40px;
+	padding: 4px 8px;
+	bottom: -50px;
+	left: 50%;
+	text-align: center;
+	transform: translateX(-50%);
+	display: flex;
+}
+
+.slider-dot-control-3 label {
+	cursor: pointer;
+	border-radius: 50px;
+	width: 15px;
+	height: 15px;
+	background: #000;
+	opacity: .5;
+	transition: all .3s ease-in-out;
+	margin: 4px;
+}
+
+.slider-dot-control-3 label:hover {
+	opacity: 1;
+}
+
+/* Slider Styling */
+.slider-wrapper-3 {
+	position: relative;
+	overflow: hidden;
+	margin-bottom: 50px;
+}
+
+.slider-wrapper-3 .inner-3 {
+	transform: translateZ(0);
+	transition: all 800ms cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.slider-wrapper-3 img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+/*---- SET POSITION FOR SLIDE ----*/
+
+.slider-prev-next-control-3 label::after {
+	display: block;
+}
+
+#slide1-3:checked~.slider-prev-next-control-3 label:nth-child(2)::after,
+#slide2-3:checked~.slider-prev-next-control-3 label:nth-child(3)::after,
+#slide3-3:checked~.slider-prev-next-control-3 label:nth-child(4)::after,
+#slide4-3:checked~.slider-prev-next-control-3 label:nth-child(5)::after,
+#slide5-3:checked~.slider-prev-next-control-3 label:nth-child(6)::after,
+#slide6-3:checked~.slider-prev-next-control-3 label:nth-child(7)::after,
+#slide7-3:checked~.slider-prev-next-control-3 label:nth-child(8)::after,
+#slide8-3:checked~.slider-prev-next-control-3 label:nth-child(9)::after,
+#slide9-3:checked~.slider-prev-next-control-3 label:nth-child(10)::after,
+#slide10-3:checked~.slider-prev-next-control-3 label:nth-child(11)::after,
+#slide11-3:checked~.slider-prev-next-control-3 label:nth-child(12)::after,
+#slide12-3:checked~.slider-prev-next-control-3 label:nth-child(13)::after,
+#slide13-3:checked~.slider-prev-next-control-3 label:nth-child(14)::after,
+#slide14-3:checked~.slider-prev-next-control-3 label:nth-child(15)::after,
+#slide15-3:checked~.slider-prev-next-control-3 label:nth-child(16)::after,
+#slide16-3:checked~.slider-prev-next-control-3 label:nth-child(17)::after,
+#slide17-3:checked~.slider-prev-next-control-3 label:nth-child(18)::after,
+#slide18-3:checked~.slider-prev-next-control-3 label:nth-child(19)::after,
+#slide19-3:checked~.slider-prev-next-control-3 label:nth-child(20)::after,
+#slide20-3:checked~.slider-prev-next-control-3 label:nth-child(1)::after {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background: url(../img/right-arrow-samsung.png) no-repeat center center;
+	background-size: 20px;
+}
+
+#slide1-3:checked~.slider-prev-next-control-3 label:nth-child(2),
+#slide2-3:checked~.slider-prev-next-control-3 label:nth-child(3),
+#slide3-3:checked~.slider-prev-next-control-3 label:nth-child(4),
+#slide4-3:checked~.slider-prev-next-control-3 label:nth-child(5),
+#slide5-3:checked~.slider-prev-next-control-3 label:nth-child(6),
+#slide6-3:checked~.slider-prev-next-control-3 label:nth-child(7),
+#slide7-3:checked~.slider-prev-next-control-3 label:nth-child(8),
+#slide8-3:checked~.slider-prev-next-control-3 label:nth-child(9),
+#slide9-3:checked~.slider-prev-next-control-3 label:nth-child(10),
+#slide10-3:checked~.slider-prev-next-control-3 label:nth-child(11),
+#slide11-3:checked~.slider-prev-next-control-3 label:nth-child(12),
+#slide12-3:checked~.slider-prev-next-control-3 label:nth-child(13),
+#slide13-3:checked~.slider-prev-next-control-3 label:nth-child(14),
+#slide14-3:checked~.slider-prev-next-control-3 label:nth-child(15),
+#slide15-3:checked~.slider-prev-next-control-3 label:nth-child(16),
+#slide16-3:checked~.slider-prev-next-control-3 label:nth-child(17),
+#slide17-3:checked~.slider-prev-next-control-3 label:nth-child(18),
+#slide18-3:checked~.slider-prev-next-control-3 label:nth-child(19),
+#slide19-3:checked~.slider-prev-next-control-3 label:nth-child(20),
+#slide20-3:checked~.slider-prev-next-control-3 label:nth-child(1) {
+	display: block;
+	float: right;
+	margin-right: 10px;
+}
+
+#slide2-3:checked~.slider-prev-next-control-3 label:nth-child(1),
+#slide3-3:checked~.slider-prev-next-control-3 label:nth-child(2),
+#slide4-3:checked~.slider-prev-next-control-3 label:nth-child(3),
+#slide5-3:checked~.slider-prev-next-control-3 label:nth-child(4),
+#slide6-3:checked~.slider-prev-next-control-3 label:nth-child(5),
+#slide7-3:checked~.slider-prev-next-control-3 label:nth-child(6),
+#slide8-3:checked~.slider-prev-next-control-3 label:nth-child(7),
+#slide9-3:checked~.slider-prev-next-control-3 label:nth-child(8),
+#slide10-3:checked~.slider-prev-next-control-3 label:nth-child(9),
+#slide11-3:checked~.slider-prev-next-control-3 label:nth-child(10),
+#slide12-3:checked~.slider-prev-next-control-3 label:nth-child(11),
+#slide13-3:checked~.slider-prev-next-control-3 label:nth-child(12),
+#slide14-3:checked~.slider-prev-next-control-3 label:nth-child(13),
+#slide15-3:checked~.slider-prev-next-control-3 label:nth-child(14),
+#slide16-3:checked~.slider-prev-next-control-3 label:nth-child(15),
+#slide17-3:checked~.slider-prev-next-control-3 label:nth-child(16),
+#slide18-3:checked~.slider-prev-next-control-3 label:nth-child(17),
+#slide19-3:checked~.slider-prev-next-control-3 label:nth-child(18),
+#slide20-3:checked~.slider-prev-next-control-3 label:nth-child(19),
+#slide1-3:checked~.slider-prev-next-control-3 label:nth-child(20) {
+	display: block;
+	float: left;
+	margin-left: 10px;
+}
+
+#slide2-3:checked~.slider-prev-next-control-3 label:nth-child(1)::after,
+#slide3-3:checked~.slider-prev-next-control-3 label:nth-child(2)::after,
+#slide4-3:checked~.slider-prev-next-control-3 label:nth-child(3)::after,
+#slide5-3:checked~.slider-prev-next-control-3 label:nth-child(4)::after,
+#slide6-3:checked~.slider-prev-next-control-3 label:nth-child(5)::after,
+#slide7-3:checked~.slider-prev-next-control-3 label:nth-child(6)::after,
+#slide8-3:checked~.slider-prev-next-control-3 label:nth-child(7)::after,
+#slide9-3:checked~.slider-prev-next-control-3 label:nth-child(8)::after,
+#slide10-3:checked~.slider-prev-next-control-3 label:nth-child(9)::after,
+#slide11-3:checked~.slider-prev-next-control-3 label:nth-child(10)::after,
+#slide12-3:checked~.slider-prev-next-control-3 label:nth-child(11)::after,
+#slide13-3:checked~.slider-prev-next-control-3 label:nth-child(12)::after,
+#slide14-3:checked~.slider-prev-next-control-3 label:nth-child(13)::after,
+#slide15-3:checked~.slider-prev-next-control-3 label:nth-child(14)::after,
+#slide16-3:checked~.slider-prev-next-control-3 label:nth-child(15)::after,
+#slide17-3:checked~.slider-prev-next-control-3 label:nth-child(16)::after,
+#slide18-3:checked~.slider-prev-next-control-3 label:nth-child(17)::after,
+#slide19-3:checked~.slider-prev-next-control-3 label:nth-child(18)::after,
+#slide20-3:checked~.slider-prev-next-control-3 label:nth-child(19)::after,
+#slide1-3:checked~.slider-prev-next-control-3 label:nth-child(20)::after {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background: url(../img/left-arrow-samsung.png) no-repeat center center;
+	background-size: 20px;
+	opacity: 1;
+}
+
+#slide1-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: 0%;
+}
+
+#slide2-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -66%;
+}
+
+#slide3-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -133%;
+}
+
+#slide4-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -200%;
+}
+
+#slide5-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -233%;
+}
+
+#slide6-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -500%;
+}
+
+#slide7-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -600%;
+}
+
+#slide8-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -700%;
+}
+
+#slide9-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -800%;
+}
+
+#slide10-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -900%;
+}
+
+#slide11-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1000%;
+}
+
+#slide12-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1100%;
+}
+
+#slide13-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1200%;
+}
+
+#slide14-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1300%;
+}
+
+#slide15-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1400%;
+}
+
+#slide16-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1500%;
+}
+
+#slide17-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1600%;
+}
+
+#slide18-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1700%;
+}
+
+#slide19-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1800%;
+}
+
+#slide20-3:checked~.slider-wrapper-3 .inner-3 {
+	margin-left: -1900%;
+}
+
+#slide1-3:checked~.slider-dot-control-3 label:nth-child(1),
+#slide2-3:checked~.slider-dot-control-3 label:nth-child(2),
+#slide3-3:checked~.slider-dot-control-3 label:nth-child(3),
+#slide4-3:checked~.slider-dot-control-3 label:nth-child(4),
+#slide5-3:checked~.slider-dot-control-3 label:nth-child(5),
+#slide6-3:checked~.slider-dot-control-3 label:nth-child(5) {
+	opacity: 1;
+}
+
+
+/*---- TABLET ----*/
+@media only screen and (max-width: 850px) and (min-width: 450px) {
+	.slider-wrapper-3 {
+		border-radius: 0;
+	}
+}
+
+/*---- MOBILE----*/
+@media only screen and (max-width: 450px) {
+	.slider-wrapper-3 {
+		border-radius: 0;
+	}
+
+	.slider-wrapper-3 .info {
+		opacity: 0;
+	}
+
+	.slider-prev-next-control-3 label{
+		width: 40px;
+		height: 40px;	
+	}
+	.slider-prev-next-control-3 label::after{
+		background-size: 16px !important;
+	}
+}
+
+@media (max-width: 767.98px) {
+
+	.inner, 
+	.inner-2, 
+	.inner-3 {
+		width: 600%;
+		line-height: 0;
+	}
+	
+	.inner article,
+	.inner-2 article,
+	.inner-3 article{
+		width: 16.66%;
+	}
+
+	#slide1:checked~.slider-wrapper .inner,
+	#slide1-2:checked~.slider-wrapper-2 .inner-2,
+	#slide1-3:checked~.slider-wrapper-3 .inner-3 {
+		margin-left: 0%;
+	}
+	
+	#slide2:checked~.slider-wrapper .inner,
+	#slide2-2:checked~.slider-wrapper-2 .inner-2,
+	#slide2-3:checked~.slider-wrapper-3 .inner-3 {
+		margin-left: -100%;
+	}
+	
+	#slide3:checked~.slider-wrapper .inner,
+	#slide3-2:checked~.slider-wrapper-2 .inner-2,
+	#slide3-3:checked~.slider-wrapper-3 .inner-3 {
+		margin-left: -200%;
+	}
+	
+	#slide4:checked~.slider-wrapper .inner,
+	#slide4-2:checked~.slider-wrapper-2 .inner-2,
+	#slide4-3:checked~.slider-wrapper-3 .inner-3 {
+		margin-left: -300%;
+	}
+
+	#slide5:checked~.slider-wrapper .inner,
+	#slide5-2:checked~.slider-wrapper-2 .inner-2,
+	#slide5-3:checked~.slider-wrapper-3 .inner-3 {
+		margin-left: -400%;
+	}
+
+	#slide6:checked~.slider-wrapper .inner,
+	#slide6-2:checked~.slider-wrapper-2 .inner-2,
+	#slide6-3:checked~.slider-wrapper-3 .inner-3 {
+		margin-left: -500%;
+	}
+}
+
+#bloco4b-samsung{
+	background-color: #000;
+	color: #fff;
+	text-align: center;
+}
