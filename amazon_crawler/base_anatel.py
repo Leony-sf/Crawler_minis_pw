@@ -1,73 +1,80 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-import re
-from typing import Optional
+from typing import Any
 
 import pandas as pd
 
-from .utils import bloco, log, normalizar_chave, normalizar_texto, remover_acentos
+from .utils import bloco, log, normalizar_chave, normalizar_texto
 
 
-def normalizar_homologacao_base(valor: object) -> str:
-    """Normaliza número de homologação para 12 dígitos.
-
-    Trata zeros à esquerda e valores eventualmente salvos em notação científica
-    pelo Excel, como 1,56482E+11 ou 1.56482E+11.
-    """
-    if pd.isna(valor):
+def normalizar_codigo_anatel(valor: Any) -> str:
+    texto = str(valor or "").strip().replace("\xa0", " ")
+    if not texto:
         return ""
 
-    txt = str(valor).strip().replace("\xa0", " ")
-    if not txt:
-        return ""
-
-    txt_decimal = txt.replace(",", ".")
-    if "e+" in txt_decimal.lower() or "e-" in txt_decimal.lower():
+    decimal = texto.replace(",", ".")
+    if "e+" in decimal.lower() or "e-" in decimal.lower():
         try:
-            txt = format(Decimal(txt_decimal), "f")
+            texto = format(Decimal(decimal), "f")
         except InvalidOperation:
             pass
 
-    if re.fullmatch(r"\d+\.0+", txt):
-        txt = txt.split(".", 1)[0]
+    if re.fullmatch(r"\d+\.0+", texto):
+        texto = texto.split(".", 1)[0]
 
-    digitos = re.sub(r"\D", "", txt)
+    digitos = re.sub(r"\D", "", texto)
     if not digitos:
         return ""
-    return digitos.zfill(12)
+    if len(digitos) < 12:
+        return digitos.zfill(12)
+    return digitos[-12:]
 
 
-def _ler_csv_robusto(caminho: str | Path) -> pd.DataFrame:
-    caminho = Path(caminho)
+def _ler_csv(caminho: str | Path) -> pd.DataFrame:
+    path = Path(caminho).expanduser().resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Base Anatel não encontrada: {path}")
+
+    ultimo_erro: Exception | None = None
     tentativas = [
         {"sep": ";", "encoding": "utf-8-sig"},
         {"sep": ";", "encoding": "latin1"},
         {"sep": ",", "encoding": "utf-8-sig"},
         {"sep": ",", "encoding": "latin1"},
     ]
-    ultimo_erro: Exception | None = None
+
     for kwargs in tentativas:
         try:
             return pd.read_csv(
-                caminho,
+                path,
                 dtype=str,
-                on_bad_lines="skip",
                 keep_default_na=False,
+                on_bad_lines="skip",
                 **kwargs,
             )
-        except Exception as exc:  # pragma: no cover - fallback operacional
+        except Exception as exc:
             ultimo_erro = exc
-    raise RuntimeError(f"Não consegui ler o CSV da base: {caminho}. Erro: {ultimo_erro}")
+
+    raise RuntimeError(f"Falha ao ler a base Anatel: {ultimo_erro}")
+
+
+def _achar_coluna_exata(df: pd.DataFrame, nome_esperado: str) -> str:
+    esperado = normalizar_chave(nome_esperado)
+    for coluna in df.columns:
+        if normalizar_chave(coluna) == esperado:
+            return coluna
+    return ""
 
 
 def _achar_coluna(df: pd.DataFrame, alternativas: list[list[str]]) -> str:
-    colunas_norm = {col: normalizar_chave(col) for col in df.columns}
+    normalizadas = {col: normalizar_chave(col) for col in df.columns}
     for termos in alternativas:
         termos_norm = [normalizar_chave(t) for t in termos]
-        for col, col_norm in colunas_norm.items():
+        for col, col_norm in normalizadas.items():
             if all(t in col_norm for t in termos_norm):
                 return col
     return ""
@@ -75,114 +82,50 @@ def _achar_coluna(df: pd.DataFrame, alternativas: list[list[str]]) -> str:
 
 @dataclass
 class BaseAnatel:
-    df: pd.DataFrame
-    prefix_len: int = 5
-    coluna_homologacao: str = ""
+    dataframe: pd.DataFrame
+    coluna_codigo: str
     coluna_fabricante: str = ""
     coluna_modelo: str = ""
+    coluna_situacao_requerimento: str = ""
 
-    def linhas_por_codigo(self, codigo_12: str) -> pd.DataFrame:
-        if not codigo_12 or self.df.empty:
-            return self.df.iloc[0:0]
-        if codigo_12 in self.df.index:
-            linhas = self.df.loc[[codigo_12]] if not isinstance(self.df.loc[codigo_12], pd.DataFrame) else self.df.loc[codigo_12]
-            return linhas if isinstance(linhas, pd.DataFrame) else linhas.to_frame().T
-        return self.df.iloc[0:0]
+    def buscar_codigo_exato(self, codigo: str) -> pd.DataFrame:
+        codigo_norm = normalizar_codigo_anatel(codigo)
+        if not codigo_norm or self.dataframe.empty:
+            return self.dataframe.iloc[0:0]
 
-    def linhas_por_prefixo(self, codigo_12: str) -> pd.DataFrame:
-        if not codigo_12 or self.df.empty:
-            return self.df.iloc[0:0]
-        pref = codigo_12[: self.prefix_len]
-        return self.df[self.df["homologacao_key"].astype(str).str.startswith(pref)]
-
-    def candidatos_para_codigo(self, codigo_12: str) -> tuple[str, pd.DataFrame]:
-        """Retorna ('exato'|'prefixo'|'nenhum', linhas candidatas)."""
-        exatas = self.linhas_por_codigo(codigo_12)
-        if not exatas.empty:
-            return "exato", exatas
-        prefixo = self.linhas_por_prefixo(codigo_12)
-        if not prefixo.empty:
-            return "prefixo", prefixo
-        return "nenhum", self.df.iloc[0:0]
+        return self.dataframe[self.dataframe["codigo_anatel_normalizado"] == codigo_norm]
 
 
-def carregar_base_anatel(caminho: Optional[str] = None, prefix_len: int = 5) -> BaseAnatel | None:
-    """Carrega e prepara a base ANATEL.
-
-    Se nenhum caminho for informado, retorna None para permitir execução em modo SEM_BASE.
-    """
+def carregar_base_anatel(caminho: str | Path | None, prefix_len: int = 5) -> BaseAnatel | None:
     if not caminho:
-        log("base", "Nenhum CSV da ANATEL informado. Produtos ficarão como SEM_BASE quando houver código.")
+        log("base anatel", "Base não informada; a conformidade Anatel não poderá ser confirmada.", nivel="AVISO")
         return None
 
-    df = _ler_csv_robusto(caminho)
+    df = _ler_csv(caminho)
     if df.empty:
-        raise ValueError("CSV da ANATEL está vazio.")
+        raise ValueError("A base Anatel está vazia.")
 
-    # Prioridade absoluta para o nome oficial da base enviada pelo usuário.
-    # Isso evita escolher coluna errada quando o CSV tiver vários campos com termos parecidos.
-    if "Número de Homologação" in df.columns:
-        col_hom = "Número de Homologação"
-    else:
-        col_hom = _achar_coluna(
-            df,
-            [
-                ["numero", "homolog"],
-                ["n", "homolog"],
-                ["homologacao"],
-                ["homologa"],
-            ],
-        )
+    col_hom = _achar_coluna(df, [["numero", "homolog"], ["codigo", "anatel"], ["homologacao"], ["homolog"]])
     if not col_hom:
-        raise ValueError(f"Não encontrei a coluna de homologação. Colunas: {list(df.columns)}")
+        raise ValueError(f"Não foi encontrada coluna de homologação. Colunas: {list(df.columns)}")
 
-    col_fab = _achar_coluna(
-        df,
-        [
-            ["nome", "fabricante"],
-            ["fabricante"],
-        ],
-    )
-    col_modelo = _achar_coluna(
-        df,
-        [
-            ["modelo"],
-            ["nome", "modelo"],
-        ],
-    )
+    col_fab = _achar_coluna(df, [["nome", "fabricante"], ["fabricante"], ["marca"]])
+    col_modelo = _achar_coluna(df, [["modelo"], ["nome", "modelo"]])
+    col_situacao = _achar_coluna_exata(df, "Situação do Requerimento")
+    
+    if not col_situacao:
+        raise ValueError("A coluna EXATA 'Situação do Requerimento' não foi encontrada.")
 
     base = df.copy()
-    base["__homologacao_original"] = base[col_hom].astype(str)
-    base["homologacao_key"] = base[col_hom].apply(normalizar_homologacao_base)
-    base = base[base["homologacao_key"].astype(str).str.len().between(8, 14)].copy()
-    base["homologacao_key"] = base["homologacao_key"].astype(str).str.zfill(12)
-    base["Numero de Homologacao"] = base["homologacao_key"]
+    base["codigo_anatel_normalizado"] = base[col_hom].map(normalizar_codigo_anatel)
+    base = base[base["codigo_anatel_normalizado"].astype(str).str.len() == 12].copy()
+    base = base.drop_duplicates(subset=["codigo_anatel_normalizado"], keep="first")
 
-    if col_fab:
-        base["fabricante_base"] = base[col_fab].apply(normalizar_texto)
-    else:
-        base["fabricante_base"] = ""
-
-    if col_modelo:
-        base["modelo_base"] = base[col_modelo].apply(normalizar_texto)
-    else:
-        base["modelo_base"] = ""
-
-    base = base.drop_duplicates(subset=["homologacao_key", "fabricante_base", "modelo_base"], keep="first")
-    base = base.set_index("homologacao_key", drop=False)
-
-    bloco("base")
-    log("base", f"Arquivo: {Path(caminho).resolve()}")
-    log("base", f"Linhas válidas: {len(base)}")
-    log("base", f"Coluna homologação: {col_hom}")
-    log("base", f"Coluna fabricante/marca: {col_fab or 'não encontrada'}")
-    log("base", f"Coluna modelo: {col_modelo or 'não encontrada'}")
-    log("base", f"Regra: código exato OU prefixo de {prefix_len} dígitos")
-
+    log("base anatel", f"Registros válidos carregados: {len(base)}")
     return BaseAnatel(
-        df=base,
-        prefix_len=prefix_len,
-        coluna_homologacao=col_hom,
+        dataframe=base,
+        coluna_codigo=col_hom,
         coluna_fabricante=col_fab,
         coluna_modelo=col_modelo,
+        coluna_situacao_requerimento=col_situacao,
     )
