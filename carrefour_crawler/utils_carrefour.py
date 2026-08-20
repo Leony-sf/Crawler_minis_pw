@@ -1,127 +1,120 @@
-# -*- coding: utf-8 -*-
-"""Utilitários do crawler Carrefour."""
-
 from __future__ import annotations
 
+import hashlib
+import json
 import re
-import shutil
 import unicodedata
 from datetime import datetime
 from pathlib import Path
-from typing import List
-from urllib.parse import quote_plus, quote
+from typing import Any
 
+import pandas as pd
 
-def agora_iso() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+PRODUCT_COLUMNS = [
+    "pid", "marketplace_id", "marketplace", "titulo", "link",
+    "codigo_anatel", "codigo_anatel_principal", "marca", "preco",
+    "status", "motivo_validacao", "motivo_irregularidade", "warning",
+    "modelo", "modelo_alfanumerico", "modelo_decisivo", "classificacao",
+    "evidencia_mini", "dimensoes_encontradas", "codigo_confere_base",
+    "marca_confere_base", "modelo_confere_base", "motivo_anatel",
+    "data_hora_captura", "data_hora_captura_iso", "referencia_captura",
+    "pasta_saida_execucao", "caminho_saida_execucao", "print_path"
+]
 
+COMMENT_COLUMNS = [
+    "pid", "marketplace_id", "url", "link", "titulo", "name",
+    "comentario_ordem", "comment", "comentario", "created_at",
+    "query_busca", "classificacao", "status", "status_validacao",
+    "codigo_anatel_principal", "anatel_number", "marca", "brand",
+    "modelo", "data_hora_captura", "data_hora_captura_iso",
+    "referencia_captura", "pasta_saida_execucao", "caminho_saida_execucao"
+]
 
-def slugify(texto: str, max_len: int = 80) -> str:
-    texto = unicodedata.normalize("NFKD", texto or "")
-    texto = "".join(ch for ch in texto if not unicodedata.combining(ch))
-    texto = re.sub(r"[^a-zA-Z0-9]+", "-", texto).strip("-").lower()
-    return (texto[:max_len].strip("-") or "item")
+def normalizar_texto(valor: Any) -> str:
+    if valor is None: return ""
+    texto = str(valor).replace("\xa0", " ").strip().lower()
+    texto = unicodedata.normalize("NFKD", texto)
+    texto = "".join(c for c in texto if not unicodedata.combining(c))
+    return re.sub(r"\s+", " ", texto).strip()
 
+def normalizar_chave(valor: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", normalizar_texto(valor))
 
-def carregar_termos_busca(caminho_txt: str) -> List[str]:
-    caminho = Path(caminho_txt)
-    if not caminho.exists():
-        caminho_local = Path(__file__).resolve().parent / caminho_txt
-        if caminho_local.exists():
-            caminho = caminho_local
-    if not caminho.exists():
-        alternativas = [
-            Path(__file__).resolve().parent / "buscar_carrefour.txt",
-            Path.cwd() / "buscar_carrefour.txt",
-            Path.cwd() / "buscas_carrefour.txt",
-        ]
-        for alt in alternativas:
-            if alt.exists():
-                caminho = alt
-                break
-    if not caminho.exists():
-        raise FileNotFoundError(
-            f"Arquivo TXT não encontrado: {caminho_txt}. Coloque buscar_carrefour.txt ao lado do main_carrefour.py."
-        )
+def remover_acentos(valor: Any) -> str:
+    return normalizar_texto(valor)
 
-    termos: List[str] = []
-    for linha in caminho.read_text(encoding="utf-8").splitlines():
-        linha = linha.strip()
-        if not linha or linha.startswith("#"):
-            continue
-        termos.append(linha)
-    if not termos:
-        raise ValueError("O arquivo TXT não possui termos de busca válidos.")
-    return termos
+def gerar_id(*valores: Any) -> str:
+    base = "||".join(str(valor or "") for valor in valores)
+    return hashlib.sha1(base.encode("utf-8", errors="ignore")).hexdigest()[:16]
 
+def secao(titulo: str) -> None:
+    print("\n" + "=" * 72)
+    print(str(titulo).upper())
+    print("=" * 72)
 
-def montar_url_busca(termo: str, pagina: int = 1, modo: str = "s") -> str:
-    """
-    Carrefour costuma indexar buscas no formato /s/<termo>?map=ft&page=N.
-    Também deixamos fallbacks por /busca/<termo> e /busca?termo=<termo>.
-    """
-    termo_limpo = re.sub(r"\s+", " ", termo.strip())
+def bloco(titulo: str) -> None:
+    print("\n" + "-" * 72)
+    print(str(titulo).upper())
+    print("-" * 72)
 
-    if modo == "busca":
-        slug = quote(re.sub(r"\s+", "-", termo_limpo.lower()), safe="-")
-        url = f"https://www.carrefour.com.br/busca/{slug}"
-        if pagina > 1:
-            url += f"?page={pagina}"
-        return url
+def log(categoria: str, mensagem: str, nivel: str = "INFO") -> None:
+    horario = datetime.now().strftime("%H:%M:%S")
+    cat_fmt = str(categoria or "geral").upper()[:16].ljust(16)
+    niv_fmt = str(nivel or "INFO").upper()[:7].ljust(7)
+    print(f"[{horario}] [{niv_fmt}] {cat_fmt} {mensagem}")
 
-    if modo == "query":
-        url = f"https://www.carrefour.com.br/busca?termo={quote_plus(termo_limpo)}"
-        if pagina > 1:
-            url += f"&page={pagina}"
-        return url
-
-    termo_url = quote(termo_limpo, safe="")
-    return f"https://www.carrefour.com.br/s/{termo_url}?map=ft&page={pagina}"
-
-
-def preparar_saida(saida: Path, limpar_prints: bool = False) -> None:
-    """Mantém a saída limpa: parquet + resumo + prints, sem CSV/JSON/comentários."""
-    saida.mkdir(parents=True, exist_ok=True)
-
-    if limpar_prints:
-        prints = saida / "prints"
-        if prints.exists():
-            shutil.rmtree(prints, ignore_errors=True)
-
-    (saida / "prints" / "irregulares" / "menor_80mm").mkdir(parents=True, exist_ok=True)
+def criar_pastas_saida(base: str | Path | None = None) -> Path:
+    raiz = Path(__file__).resolve().parent
+    if base:
+        saida = Path(base).expanduser()
+        if not saida.is_absolute(): saida = raiz / saida
+    else:
+        nome_base = datetime.now().strftime("Saidas_carrefour-%d_%m-%H_%M")
+        saida = raiz / nome_base
+        contador = 2
+        while saida.exists():
+            saida = raiz / f"{nome_base}_{contador:02d}"
+            contador += 1
+    
+    saida = saida.resolve()
+    (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
-    (saida / "suspeitos").mkdir(parents=True, exist_ok=True)
+    return saida
 
-    arquivos_antigos = [
-        "products.csv", "comments.csv", "comments.parquet", "resumo.csv", "resumo.json",
-        "suspeitos_sem_medidas.parquet",
-    ]
-    for nome in arquivos_antigos:
-        alvo = saida / nome
-        if alvo.exists():
-            alvo.unlink()
+def metadados_captura(pasta_saida: Path, momento: datetime | None = None) -> dict[str, str]:
+    momento = momento or datetime.now().astimezone()
+    return {
+        "data_hora_captura": momento.strftime("%d/%m/%Y %H:%M:%S"),
+        "data_hora_captura_iso": momento.isoformat(timespec="seconds"),
+        "referencia_captura": f"Produto capturado em {momento.strftime('%d/%m/%Y às %H:%M:%S')}",
+        "pasta_saida_execucao": pasta_saida.name,
+        "caminho_saida_execucao": str(pasta_saida.resolve()),
+    }
 
-    pastas_antigas = [
-        saida / "json",
-        saida / "prints" / "descartados",
-        saida / "prints" / "irregulares" / "mini_celulares",
-        saida / "prints" / "irregulares" / "tela_ate_5_polegadas",
-        saida / "prints" / "irregulares" / "tela_ate_3_polegadas",
-        saida / "prints" / "irregulares" / "sem_medidas",
-        saida / "prints" / "irregulares" / "revisar_medidas",
-        saida / "prints" / "irregulares" / "sem_anatel",
-        saida / "suspeitos_sem_medidas",
-        saida / "suspeitos_tela_proxima_3",
-        saida / "suspeitos_sem_tela",
-        saida / "prints" / "suspeitos" / "tela_proxima_3_polegadas",
-        saida / "prints" / "suspeitos" / "sem_tela",
-        saida / "prints" / "debug_busca_sem_links",
-    ]
-    for pasta in pastas_antigas:
-        if pasta.exists():
-            shutil.rmtree(pasta, ignore_errors=True)
+def _valor_para_parquet(valor: Any) -> Any:
+    if isinstance(valor, (dict, list, tuple, set)):
+        return json.dumps(valor, ensure_ascii=False, sort_keys=True)
+    return valor
 
+def preparar_dataframe(linhas: list[dict[str, Any]], colunas_base: list[str]) -> pd.DataFrame:
+    linhas_validas = [l for l in linhas if str(l.get("pid") or "").strip()]
+    linhas_norm = [{k: _valor_para_parquet(v) for k, v in l.items()} for l in linhas_validas]
+    df = pd.DataFrame(linhas_norm).reindex(columns=colunas_base)
+    
+    for col in df.columns:
+        if col == "comentario_ordem":
+            df[col] = pd.to_numeric(df[col], errors="coerce").astype("float64")
+        else:
+            df[col] = df[col].where(pd.notna(df[col]), "").astype("string")
+    return df
 
-def escrever_resumo_txt(saida: Path, linhas: List[str]) -> None:
-    saida.mkdir(parents=True, exist_ok=True)
-    (saida / "resumo.txt").write_text("\n".join(linhas), encoding="utf-8")
+def salvar_parquet_incremental(pasta_saida: Path, produtos: list[dict[str, Any]], comentarios: list[dict[str, Any]]) -> None:
+    preparar_dataframe(produtos, PRODUCT_COLUMNS).to_parquet(pasta_saida / "products.parquet", index=False)
+    preparar_dataframe(comentarios, COMMENT_COLUMNS).to_parquet(pasta_saida / "comentarios.parquet", index=False)
+
+def carregar_termos_busca(caminho_txt: str) -> list[str]:
+    caminho = Path(caminho_txt)
+    if not caminho.exists(): raise FileNotFoundError(f"Arquivo TXT não encontrado: {caminho_txt}")
+    termos = [linha.strip() for linha in caminho.read_text(encoding="utf-8").splitlines() if linha.strip() and not linha.startswith("#")]
+    if not termos: raise ValueError("O arquivo TXT não possui termos de busca válidos.")
+    return termos

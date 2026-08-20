@@ -1,46 +1,72 @@
 # -*- coding: utf-8 -*-
-"""Entrada principal do crawler Carrefour."""
-
 from __future__ import annotations
 
 import argparse
 import asyncio
+import sys
 from pathlib import Path
 
-from crawler_playwright_carrefour import ConfigCarrefour, executar_crawler_carrefour
+# Agora ele vai conseguir importar isso, desde que o base_anatel.py esteja na mesma pasta
+from base_anatel import carregar_base_anatel
+from crawler_playwright_carrefour import rodar_playwright_carrefour
+from utils_carrefour import carregar_termos_busca
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Crawler Carrefour para mini celulares por dimensão física <= 80 mm.")
-    parser.add_argument("--txt", default="buscar_carrefour.txt", help="Arquivo TXT com termos de busca.")
-    parser.add_argument("--saida", default="saidas_carrefour", help="Pasta de saída.")
-    parser.add_argument("--limit", type=int, default=100, help="Quantidade máxima de produtos analisados, incluindo descartados.")
-    parser.add_argument("--max-paginas", type=int, default=1, help="Máximo de páginas por termo.")
-    parser.add_argument("--headless", action="store_true", help="Executa sem abrir janela do navegador.")
-    parser.add_argument("--slow-mo", type=int, default=0, help="Atraso em ms entre ações do Playwright.")
-    parser.add_argument("--timeout-ms", type=int, default=30000, help="Timeout em milissegundos.")
-    parser.add_argument("--salvar-descartados", action="store_true", help="Também salva produtos descartados no products.parquet.")
-    parser.add_argument("--limpar-prints", action="store_true", help="Remove prints antigos antes da execução.")
-    parser.add_argument("--pausar-inicio", action="store_true", help="Abre a busca e pausa para login/captcha/CEP antes de coletar.")
-    return parser.parse_args()
+def construir_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Crawler Carrefour padronizado.")
+    parser.add_argument("--query", default="celular", help="Termos separados por vírgula.")
+    parser.add_argument("--txt", help="TXT com um termo de busca por linha.")
+    parser.add_argument("--limit", type=int, default=0, help="Limite total de anúncios (0 = sem limite).")
+    parser.add_argument("--max-paginas", type=int, default=0, help="Máximo de páginas por termo.")
+    parser.add_argument("--base", help="Caminho para o CSV da base de produtos homologados da Anatel.")
+    parser.add_argument("--saida", help="Pasta de saída opcional.")
+    parser.add_argument("--url", help="URL direta de uma listagem do Carrefour.")
+    parser.add_argument("--sem-pausa", action="store_true", help="Não aguarda ENTER antes da coleta.")
+    parser.add_argument("--porta-chrome", type=int, default=9225, help="Porta do Chrome (uso opcional).")
+    return parser
 
 
-def main() -> None:
-    args = parse_args()
-    config = ConfigCarrefour(
-        txt=args.txt,
-        saida=Path(args.saida),
-        limit=args.limit,
-        max_paginas=args.max_paginas,
-        headless=args.headless,
-        slow_mo=args.slow_mo,
-        timeout_ms=args.timeout_ms,
-        salvar_descartados=args.salvar_descartados,
-        limpar_prints=args.limpar_prints,
-        pausar_inicio=args.pausar_inicio,
-    )
-    asyncio.run(executar_crawler_carrefour(config))
+def main() -> int:
+    args = construir_parser().parse_args()
+
+    try:
+        if args.txt:
+            consultas = carregar_termos_busca(args.txt)
+            query_principal = consultas[0]
+        else:
+            consultas = [
+                item.strip()
+                for item in str(args.query or "celular").split(",")
+                if item.strip()
+            ]
+            query_principal = consultas[0] if consultas else "celular"
+
+        # Carrega a base da Anatel usando o mesmo padrão do ML
+        base = carregar_base_anatel(args.base) if args.base else None
+
+        # Roda o bot assíncrono do Carrefour
+        asyncio.run(
+            rodar_playwright_carrefour(
+                query=query_principal,
+                queries=consultas,
+                limite=args.limit,
+                base_anatel=base,
+                url=args.url,
+                saida=args.saida,
+                max_paginas=args.max_paginas,
+                pausar_inicio=not args.sem_pausa,
+                porta_chrome=args.porta_chrome,
+            )
+        )
+        return 0
+
+    except KeyboardInterrupt:
+        print("\nExecução interrompida pelo usuário.")
+        return 130
+    except Exception as exc:
+        print(f"\n[ERRO] {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

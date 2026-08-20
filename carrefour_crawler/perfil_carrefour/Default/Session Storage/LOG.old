@@ -1,3 +1,15 @@
-2026/07/24-08:40:41.245 4bec Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/MANIFEST-000001
-2026/07/24-08:40:41.254 4bec Recovering log #3
-2026/07/24-08:40:41.273 4bec Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/000003.log 
+2026/08/20-09:23:38.029 a504 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/MANIFEST-000001
+2026/08/20-09:23:38.034 a504 Recovering log #12
+2026/08/20-09:23:38.046 a504 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/000012.log 
+2026/08/20-09:23:38.255 a504 Level-0 table #16: started
+2026/08/20-09:23:38.360 a504 Level-0 table #16: 21767 bytes OK
+2026/08/20-09:23:38.381 a504 Delete type=0 #12
+2026/08/20-09:23:38.385 e7b8 Compacting 4@0 + 1@1 files
+2026/08/20-09:23:38.416 e7b8 Generated table #17@0: 1681 keys, 18973 bytes
+2026/08/20-09:23:38.416 e7b8 Compacted 4@0 + 1@1 files => 18973 bytes
+2026/08/20-09:23:38.436 e7b8 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/20-09:23:38.438 e7b8 Delete type=2 #7
+2026/08/20-09:23:38.438 e7b8 Delete type=2 #9
+2026/08/20-09:23:38.438 e7b8 Delete type=2 #11
+2026/08/20-09:23:38.439 e7b8 Delete type=2 #13
+2026/08/20-09:23:38.440 e7b8 Delete type=2 #16
