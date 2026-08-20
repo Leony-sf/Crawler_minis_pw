@@ -1,27 +1,20 @@
 # -*- coding: utf-8 -*-
-"""Utilitários do crawler Americanas.com."""
-
 from __future__ import annotations
-
 import re
-import shutil
 import unicodedata
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Any
 from urllib.parse import quote_plus, quote
-
 
 def agora_iso() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
 
 def slugify(texto: str, max_len: int = 80) -> str:
     texto = unicodedata.normalize("NFKD", texto or "")
     texto = "".join(ch for ch in texto if not unicodedata.combining(ch))
     texto = re.sub(r"[^a-zA-Z0-9]+", "-", texto).strip("-").lower()
     return (texto[:max_len].strip("-") or "item")
-
 
 def carregar_termos_busca(caminho_txt: str) -> List[str]:
     caminho = Path(caminho_txt)
@@ -30,19 +23,7 @@ def carregar_termos_busca(caminho_txt: str) -> List[str]:
         if caminho_local.exists():
             caminho = caminho_local
     if not caminho.exists():
-        alternativas = [
-            Path(__file__).resolve().parent / "buscar_americanas.txt",
-            Path.cwd() / "buscar_americanas.txt",
-            Path.cwd() / "buscas_americanas.txt",
-        ]
-        for alt in alternativas:
-            if alt.exists():
-                caminho = alt
-                break
-    if not caminho.exists():
-        raise FileNotFoundError(
-            f"Arquivo TXT não encontrado: {caminho_txt}. Coloque buscar_americanas.txt ao lado do main_americanas.py."
-        )
+        raise FileNotFoundError(f"Arquivo TXT não encontrado: {caminho_txt}")
 
     termos: List[str] = []
     for linha in caminho.read_text(encoding="utf-8").splitlines():
@@ -54,68 +35,55 @@ def carregar_termos_busca(caminho_txt: str) -> List[str]:
         raise ValueError("O arquivo TXT não possui termos de busca válidos.")
     return termos
 
-
 def montar_url_busca(termo: str, pagina: int = 1, modo: str = "s") -> str:
-    """
-    Americanas aparece indexando buscas tanto por /s?q=termo quanto por /busca/termo.
-    Usamos /s?q= como principal e /busca/ como fallback.
-    """
     if modo == "busca":
         slug = quote(re.sub(r"\s+", "-", termo.strip().lower()), safe="-")
         url = f"https://www.americanas.com.br/busca/{slug}"
         if pagina > 1:
             url += f"?page={pagina}"
         return url
-
     url = f"https://www.americanas.com.br/s?q={quote_plus(termo)}"
     if pagina > 1:
         url += f"&page={pagina}"
     return url
 
-
-def preparar_saida(saida: Path, limpar_prints: bool = False) -> None:
-    """Mantém a saída limpa: parquet + resumo + prints, sem CSV/JSON/comentários."""
-    saida.mkdir(parents=True, exist_ok=True)
-
-    if limpar_prints:
-        prints = saida / "prints"
-        if prints.exists():
-            shutil.rmtree(prints, ignore_errors=True)
-
-    (saida / "prints" / "irregulares" / "menor_80mm").mkdir(parents=True, exist_ok=True)
+def criar_pastas_saida(base: str | Path | None = None) -> Path:
+    raiz = Path.cwd()
+    if base and str(base) != "saidas_americanas":
+        saida = Path(base).expanduser()
+        if not saida.is_absolute():
+            saida = raiz / saida
+    else:
+        nome_base = datetime.now().strftime("Saidas_americanas_%d-%m_%H-%M")
+        saida = raiz / nome_base
+        contador = 2
+        while saida.exists():
+            saida = raiz / f"{nome_base}_{contador:02d}"
+            contador += 1
+            
+    saida = saida.resolve()
+    (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
-    (saida / "suspeitos").mkdir(parents=True, exist_ok=True)
-
-    arquivos_antigos = [
-        "products.csv", "comments.csv", "comments.parquet", "resumo.csv", "resumo.json",
-        "suspeitos_sem_medidas.parquet",
-    ]
-    for nome in arquivos_antigos:
-        alvo = saida / nome
-        if alvo.exists():
-            alvo.unlink()
-
-    pastas_antigas = [
-        saida / "json",
-        saida / "prints" / "descartados",
-        saida / "prints" / "irregulares" / "mini_celulares",
-        saida / "prints" / "irregulares" / "tela_ate_5_polegadas",
-        saida / "prints" / "irregulares" / "tela_ate_3_polegadas",
-        saida / "prints" / "irregulares" / "sem_medidas",
-        saida / "prints" / "irregulares" / "revisar_medidas",
-        saida / "prints" / "irregulares" / "sem_anatel",
-        saida / "suspeitos_sem_medidas",
-        saida / "suspeitos_tela_proxima_3",
-        saida / "suspeitos_sem_tela",
-        saida / "prints" / "suspeitos" / "tela_proxima_3_polegadas",
-        saida / "prints" / "suspeitos" / "sem_tela",
-        saida / "prints" / "debug_busca_sem_links",
-    ]
-    for pasta in pastas_antigas:
-        if pasta.exists():
-            shutil.rmtree(pasta, ignore_errors=True)
-
+    return saida
 
 def escrever_resumo_txt(saida: Path, linhas: List[str]) -> None:
     saida.mkdir(parents=True, exist_ok=True)
     (saida / "resumo.txt").write_text("\n".join(linhas), encoding="utf-8")
+
+# --- Funções de Log ---
+
+def secao(titulo: str) -> None:
+    print("\n" + "=" * 72)
+    print(str(titulo).upper())
+    print("=" * 72)
+
+def bloco(titulo: str) -> None:
+    print("\n" + "-" * 72)
+    print(str(titulo).upper())
+    print("-" * 72)
+
+def log(categoria: str, mensagem: str, nivel: str = "INFO") -> None:
+    horario = datetime.now().strftime("%H:%M:%S")
+    categoria_formatada = str(categoria or "geral").upper()[:16].ljust(16)
+    nivel_formatado = str(nivel or "INFO").upper()[:7].ljust(7)
+    print(f"[{horario}] [{nivel_formatado}] {categoria_formatada} {mensagem}")
