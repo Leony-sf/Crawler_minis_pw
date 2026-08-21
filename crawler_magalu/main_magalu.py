@@ -7,6 +7,7 @@ import argparse
 from pathlib import Path
 
 from crawler_playwright_magalu import ConfigMagalu, run
+from base_anatel import carregar_base_anatel
 
 
 def montar_parser() -> argparse.ArgumentParser:
@@ -15,7 +16,8 @@ def montar_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--txt", default="buscar_magalu.txt", help="Arquivo TXT com termos de busca.")
-    parser.add_argument("--saida", default="saidas_magalu", help="Pasta de saída.")
+    parser.add_argument("--saida", help="Pasta de saída. Se vazio, cria com data e hora automática.")
+    parser.add_argument("--base", help="CSV da base de produtos homologados da Anatel.")
     parser.add_argument("--limit", type=int, default=100, help="Máximo de registros salvos.")
     parser.add_argument("--max-paginas", type=int, default=2, help="Máximo de páginas de busca por termo.")
     parser.add_argument("--headless", action="store_true", help="Rodar sem abrir janela do navegador.")
@@ -29,9 +31,12 @@ def montar_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = montar_parser().parse_args()
+    base_anatel_carregada = carregar_base_anatel(args.base) if args.base else None
+
     config = ConfigMagalu(
         txt=args.txt,
-        saida=Path(args.saida),
+        saida=Path(args.saida) if args.saida else None,
+        base_anatel=base_anatel_carregada,
         limit=args.limit,
         max_paginas=args.max_paginas,
         headless=args.headless,

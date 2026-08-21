@@ -457,3 +457,138 @@ def classificar_produto(produto: Dict[str, Any]) -> Classificacao:
         sem_tela=tela_pol is None, regra="dimensao_acima_limite", medidas_extraidas=medidas_extraidas,
         maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
     )
+
+# [Mantenha todos os imports, constantes e funções até a classificar_produto]
+
+def classificar_produto(produto: Dict[str, Any], anatel_info: Dict[str, Any] = None) -> Classificacao:
+    if anatel_info is None:
+        anatel_info = {}
+        
+    titulo = normalizar_texto(produto.get("titulo"))
+    texto_card = normalizar_texto(produto.get("texto_card"))
+    detalhes = normalizar_texto(produto.get("detalhes"))
+    ficha_tecnica = normalizar_texto(produto.get("ficha_tecnica"))
+    texto_produto = normalizar_texto(produto.get("texto_pagina"))
+
+    texto_focado = " ".join([titulo, texto_card, detalhes, ficha_tecnica])
+    texto_focado_lower = texto_focado.lower()
+    titulo_lower = titulo.lower()
+    texto_completo = " ".join([texto_focado, texto_produto[:15000]])
+
+    termos_tel = contem_termo(texto_focado_lower, TERMOS_TELEFONIA)
+    termos_tel_forte = contem_termo(texto_focado_lower, TERMOS_TELEFONIA_FORTE)
+    termos_acessorio = contem_termo(titulo_lower, TERMOS_ACESSORIO)
+    termos_brinquedo = contem_termo(texto_focado_lower, TERMOS_BRINQUEDO)
+    termos_aparelho_no_titulo = contem_termo(titulo_lower, ["dual chip", "dois chips", "2 chips", "chip", "sim card", "gsm", "celular", "smartphone", "telefone"])
+
+    codigo_anatel = produto.get("codigo_anatel_principal") or extrair_codigo_anatel(texto_completo)
+    tela_txt, tela_pol, tela_mini, tela_suspeita, tela_grande = extrair_tela_polegadas(texto_focado, ficha_tecnica)
+
+    medida = extrair_medida_fisica_mm(texto_focado, ficha_tecnica, detalhes, texto_produto[:12000])
+    medidas_extraidas = medida["medidas_extraidas"]
+    maior_dimensao_mm = medida["maior_dimensao_mm"]
+    altura_mm = medida["altura_mm"] or maior_dimensao_mm
+    largura_mm = medida["largura_mm"]
+    comprimento_mm = medida["comprimento_mm"]
+
+    if bool(termos_acessorio) and not termos_aparelho_no_titulo:
+        return _classificacao_base(
+            status="DESCARTADO", categoria_print="", motivos=["Produto aparenta ser acessório/peça."],
+            evidencias=termos_acessorio[:6], codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+            tela_mini=tela_mini, tela_suspeita=tela_suspeita, tela_grande=tela_grande, eh_mini_celular=False,
+            eh_acessorio=True, sem_tela=tela_pol is None, regra="acessorio_descartado", medidas_extraidas=medidas_extraidas,
+            maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+        )
+
+    if bool(termos_brinquedo) and not termos_tel_forte:
+        return _classificacao_base(
+            status="DESCARTADO", categoria_print="", motivos=["Produto aparenta ser brinquedo sem indício real de telefonia."],
+            evidencias=termos_brinquedo[:6], codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+            tela_mini=tela_mini, tela_suspeita=tela_suspeita, tela_grande=tela_grande, eh_mini_celular=False,
+            eh_acessorio=False, sem_tela=tela_pol is None, regra="brinquedo_descartado", medidas_extraidas=medidas_extraidas,
+            maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+        )
+
+    if not termos_tel:
+        return _classificacao_base(
+            status="DESCARTADO", categoria_print="", motivos=["Sem indício suficiente de celular/telefone com chip."],
+            evidencias=[], codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol, tela_mini=tela_mini,
+            tela_suspeita=tela_suspeita, tela_grande=tela_grande, eh_mini_celular=False, eh_acessorio=False,
+            sem_tela=tela_pol is None, regra="sem_telefonia", medidas_extraidas=medidas_extraidas,
+            maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+        )
+
+    evidencias: List[str] = []
+    if medidas_extraidas:
+        evidencias.append(f"Medida capturada: {medidas_extraidas}")
+    evidencias.extend(termos_tel[:8])
+    if codigo_anatel:
+        evidencias.append(f"ANATEL: {codigo_anatel}")
+
+    if altura_mm is None and largura_mm is None:
+        return _classificacao_base(
+            status="REVISAR", categoria_print="suspeitos",
+            motivos=["Aparelho celular localizado, mas a medida física não foi capturada automaticamente."],
+            evidencias=evidencias, codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+            tela_mini=False, tela_suspeita=False, tela_grande=False, eh_mini_celular=False, eh_acessorio=False,
+            sem_tela=tela_pol is None, regra="celular_sem_medida_fisica_localizada", medidas_extraidas="",
+            maior_dimensao_mm=None, altura_mm=None, largura_mm=None, comprimento_mm=None
+        )
+
+    atende_altura = altura_mm <= LIMITE_ALTURA_MAX_MM
+    atende_largura = largura_mm is None or largura_mm <= LIMITE_LARGURA_MAX_MM
+
+    if atende_altura and atende_largura:
+        anatel_em_ordem = (anatel_info.get("anatel_em_ordem") == "SIM")
+        status_req = anatel_info.get("situacao_requerimento_normalizada")
+
+        if status_req in {"CANCELADA", "SUSPENSA"}:
+            motivos = [f"Dimensões de mini celular, mas homologação consta como {status_req} na Anatel."]
+            return _classificacao_base(
+                status="IRREGULAR", categoria_print="irregulares",
+                motivos=motivos, evidencias=evidencias, codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+                tela_mini=True, tela_suspeita=False, tela_grande=False, eh_mini_celular=True, eh_acessorio=False,
+                sem_tela=tela_pol is None, regra="homologacao_suspensa_cancelada", medidas_extraidas=medidas_extraidas,
+                maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+            )
+            
+        if anatel_em_ordem:
+            motivos = ["Dimensões dentro do limite, porém o código Anatel, a marca e o modelo estão em conformidade com a base."]
+            return _classificacao_base(
+                status="DESCARTADO", categoria_print="",
+                motivos=motivos, evidencias=evidencias, codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+                tela_mini=True, tela_suspeita=False, tela_grande=False, eh_mini_celular=True, eh_acessorio=False,
+                sem_tela=tela_pol is None, regra="anatel_em_ordem", medidas_extraidas=medidas_extraidas,
+                maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+            )
+
+        motivos = [f"Dimensões dentro do limite de mini celular: Altura <= {LIMITE_ALTURA_MAX_MM} mm e Largura <= {LIMITE_LARGURA_MAX_MM} mm."]
+        if not anatel_info.get("codigo_anatel_normalizado"):
+            motivos.append("Código Anatel não identificado ou irregular.")
+            
+        return _classificacao_base(
+            status="IRREGULAR", categoria_print="irregulares",
+            motivos=motivos, evidencias=evidencias, codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+            tela_mini=True, tela_suspeita=False, tela_grande=False, eh_mini_celular=True, eh_acessorio=False,
+            sem_tela=tela_pol is None, regra="dimensao_inferior_12x55cm_irregular", medidas_extraidas=medidas_extraidas,
+            maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+        )
+
+    if altura_mm <= LIMITE_ALTURA_MAX_MM + MARGEM_SUSPEITA_MM:
+        return _classificacao_base(
+            status="SUSPEITO", categoria_print="suspeitos",
+            motivos=[f"Dimensões ligeiramente acima do limite de mini celular (Altura: {altura_mm} mm)."],
+            evidencias=evidencias, codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+            tela_mini=False, tela_suspeita=True, tela_grande=False, eh_mini_celular=False, eh_acessorio=False,
+            sem_tela=tela_pol is None, regra="dimensao_suspeita", medidas_extraidas=medidas_extraidas,
+            maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+        )
+
+    return _classificacao_base(
+        status="DESCARTADO", categoria_print="",
+        motivos=[f"Dimensões acima do limite máximo estabelecido (Altura: {altura_mm} mm)."],
+        evidencias=evidencias, codigo_anatel=codigo_anatel, tela_txt=tela_txt, tela_pol=tela_pol,
+        tela_mini=False, tela_suspeita=False, tela_grande=True, eh_mini_celular=False, eh_acessorio=False,
+        sem_tela=tela_pol is None, regra="dimensao_acima_limite", medidas_extraidas=medidas_extraidas,
+        maior_dimensao_mm=maior_dimensao_mm, altura_mm=altura_mm, largura_mm=largura_mm, comprimento_mm=comprimento_mm
+    )

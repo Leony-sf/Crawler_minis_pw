@@ -1,0 +1,9 @@
+Resumo da coleta Magalu
+========================
+Data/hora: 2026-08-21 14:39:26
+Termos de busca: mini celular, l8star, celular bm10, celular bm30, celular bm70, celular bm200, celular bm66, mini phone dual sim, bluetooth dialer mini phone, smallest cell phone sim card, card phone gsm, l8star bm70 mini phone, soyes mini smartphone, mini celular dual sim, mini feature phone gsm, pocket mobile phone dual sim
+Produtos analisados nesta execução: 5
+Registros salvos no products.parquet: 3
+Irregulares por dimensão e/ou Anatel: 0
+Suspeitos: 0
+Erros/timeout: 0

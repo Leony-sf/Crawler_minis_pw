@@ -4,10 +4,9 @@
 from __future__ import annotations
 
 import re
-import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List
+from typing import List
 from urllib.parse import quote_plus, urljoin, urlsplit, urlunsplit
 
 
@@ -42,8 +41,6 @@ def limpar_url(url: str) -> str:
 
 def montar_url_busca(termo: str, pagina: int = 1) -> str:
     termo_q = quote_plus(termo.strip())
-    # O Magalu aceita buscas nesse formato: /busca/<termo>/.
-    # O parâmetro page é mantido para paginação quando a plataforma retornar mais de uma página.
     return f"{BASE_URL_MAGALU}/busca/{termo_q}/?page={pagina}"
 
 
@@ -90,50 +87,25 @@ def carregar_termos_busca(caminho_txt: str) -> List[str]:
     return termos
 
 
-def preparar_saida(saida: Path, limpar_prints: bool = False) -> None:
-    """Mantém a saída limpa: parquet + resumo + prints, sem CSV/JSON/comentários."""
-    saida.mkdir(parents=True, exist_ok=True)
+def criar_pastas_saida_magalu(base: str | Path | None = None) -> Path:
+    raiz = Path(__file__).resolve().parent
 
-    if limpar_prints:
-        prints = saida / "prints"
-        if prints.exists():
-            shutil.rmtree(prints, ignore_errors=True)
+    if base:
+        saida = Path(base).expanduser()
+        if not saida.is_absolute():
+            saida = raiz / saida
+    else:
+        nome_base = datetime.now().strftime("Saidas_magalu_%d-%m_%H-%M")
+        saida = raiz / nome_base
+        contador = 2
 
-    (saida / "prints" / "irregulares" / "menor_80mm").mkdir(parents=True, exist_ok=True)
+        while saida.exists():
+            saida = raiz / f"{nome_base}_{contador:02d}"
+            contador += 1
+
+    saida = saida.resolve()
+
+    (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
-    (saida / "suspeitos").mkdir(parents=True, exist_ok=True)
 
-    arquivos_antigos = [
-        "products.csv", "comments.csv", "comments.parquet", "resumo.csv", "resumo.json",
-        "suspeitos_sem_medidas.parquet",
-    ]
-    for nome in arquivos_antigos:
-        alvo = saida / nome
-        if alvo.exists():
-            alvo.unlink()
-
-    pastas_antigas = [
-        saida / "json",
-        saida / "prints" / "descartados",
-        saida / "prints" / "irregulares" / "mini_celulares",
-        saida / "prints" / "irregulares" / "tela_ate_5_polegadas",
-        saida / "prints" / "irregulares" / "tela_ate_3_polegadas",
-        saida / "prints" / "irregulares" / "sem_medidas",
-        saida / "prints" / "irregulares" / "revisar_medidas",
-        saida / "prints" / "irregulares" / "sem_anatel",
-        saida / "suspeitos_sem_medidas",
-        saida / "suspeitos_tela_proxima_3",
-        saida / "suspeitos_sem_tela",
-        saida / "prints" / "suspeitos" / "tela_proxima_3_polegadas",
-        saida / "prints" / "suspeitos" / "sem_tela",
-    ]
-    for pasta in pastas_antigas:
-        if pasta.exists():
-            shutil.rmtree(pasta, ignore_errors=True)
-
-
-def escrever_resumo_txt(saida: Path, linhas: Iterable[str]) -> Path:
-    path = saida / "resumo.txt"
-    conteudo = "\n".join(str(linha) for linha in linhas)
-    path.write_text(conteudo, encoding="utf-8")
-    return path
+    return saida
