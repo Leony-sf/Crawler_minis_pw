@@ -1,3 +1,30 @@
-2026/08/20-09:26:52.066 c820 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/MANIFEST-000001
-2026/08/20-09:26:52.074 c820 Recovering log #15
-2026/08/20-09:26:52.098 c820 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/000015.log 
+2026/08/25-14:01:49.501 5f98 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/MANIFEST-000001
+2026/08/25-14:01:49.522 5f98 Recovering log #15
+2026/08/25-14:01:49.538 5f98 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/000015.log 
+2026/08/25-14:03:29.558 5f98 Level-0 table #20: started
+2026/08/25-14:03:29.579 5f98 Level-0 table #20: 18666 bytes OK
+2026/08/25-14:03:29.583 5f98 Delete type=0 #15
+2026/08/25-14:06:57.422 6b04 Level-0 table #22: started
+2026/08/25-14:06:57.526 6b04 Level-0 table #22: 18735 bytes OK
+2026/08/25-14:06:57.528 6b04 Delete type=0 #19
+2026/08/25-14:09:19.225 5f98 Level-0 table #24: started
+2026/08/25-14:09:19.311 5f98 Level-0 table #24: 17707 bytes OK
+2026/08/25-14:09:19.313 5f98 Delete type=0 #21
+2026/08/25-14:11:33.465 5f98 Level-0 table #26: started
+2026/08/25-14:11:33.486 5f98 Level-0 table #26: 18051 bytes OK
+2026/08/25-14:11:33.490 5f98 Delete type=0 #23
+2026/08/25-14:11:33.495 5f98 Compacting 4@0 + 1@1 files
+2026/08/25-14:11:33.527 5f98 Generated table #27@0: 2985 keys, 51861 bytes
+2026/08/25-14:11:33.527 5f98 Compacted 4@0 + 1@1 files => 51861 bytes
+2026/08/25-14:11:33.528 5f98 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/25-14:11:33.529 5f98 Delete type=2 #17
+2026/08/25-14:11:33.530 5f98 Delete type=2 #20
+2026/08/25-14:11:33.530 5f98 Delete type=2 #22
+2026/08/25-14:11:33.530 5f98 Delete type=2 #24
+2026/08/25-14:11:33.530 5f98 Delete type=2 #26
+2026/08/25-14:14:18.440 5f98 Level-0 table #29: started
+2026/08/25-14:14:18.465 5f98 Level-0 table #29: 16830 bytes OK
+2026/08/25-14:14:18.467 5f98 Delete type=0 #25
+2026/08/25-14:16:41.279 5f98 Level-0 table #31: started
+2026/08/25-14:16:41.303 5f98 Level-0 table #31: 18040 bytes OK
+2026/08/25-14:16:41.306 5f98 Delete type=0 #28

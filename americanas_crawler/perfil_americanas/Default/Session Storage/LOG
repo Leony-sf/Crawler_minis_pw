@@ -1,3 +1,23 @@
-2026/08/20-11:02:55.023 7dec Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\americanas_crawler\perfil_americanas\Default\Session Storage/MANIFEST-000001
-2026/08/20-11:02:55.039 7dec Recovering log #14
-2026/08/20-11:02:55.051 7dec Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\americanas_crawler\perfil_americanas\Default\Session Storage/000014.log 
+2026/08/26-12:15:47.476 455c Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\americanas_crawler\perfil_americanas\Default\Session Storage/MANIFEST-000001
+2026/08/26-12:15:47.494 455c Recovering log #14
+2026/08/26-12:15:47.512 455c Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\americanas_crawler\perfil_americanas\Default\Session Storage/000014.log 
+2026/08/26-12:21:50.963 455c Level-0 table #18: started
+2026/08/26-12:21:50.989 455c Level-0 table #18: 14534 bytes OK
+2026/08/26-12:21:50.994 455c Delete type=0 #14
+2026/08/26-12:21:50.999 455c Compacting 4@0 + 1@1 files
+2026/08/26-12:21:51.028 455c Generated table #19@0: 2045 keys, 29967 bytes
+2026/08/26-12:21:51.028 455c Compacted 4@0 + 1@1 files => 29967 bytes
+2026/08/26-12:21:51.031 455c compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/08/26-12:21:51.033 455c Delete type=2 #7
+2026/08/26-12:21:51.033 455c Delete type=2 #9
+2026/08/26-12:21:51.033 455c Delete type=2 #12
+2026/08/26-12:21:51.033 455c Delete type=2 #15
+2026/08/26-12:21:51.033 455c Delete type=2 #18
+2026/08/26-12:27:46.424 455c Level-0 table #21: started
+2026/08/26-12:27:46.459 455c Level-0 table #21: 13820 bytes OK
+2026/08/26-12:27:46.478 455c Delete type=0 #17
+2026/08/26-12:33:33.230 455c Level-0 table #23: started
+2026/08/26-12:33:33.248 455c Level-0 table #23: 13966 bytes OK
+2026/08/26-12:33:33.250 455c Delete type=0 #20
+2026/08/26-12:39:17.413 e40 Level-0 table #25: started
+2026/08/26-12:39:17.435 e40 Level-0 table #25: 13981 bytes OK

@@ -7,9 +7,51 @@ from utils_alibaba import normalizar_texto
 
 LIMITE_ALTURA_CM = 12.0
 LIMITE_LARGURA_CM = 5.5
-ROTULOS_DIMENSAO = {"dimensoes", "dimensao", "tamanho do produto", "medidas do produto", "medida do produto", "altura", "largura", "comprimento", "profundidade", "espessura", "size", "dimensions"}
-ROTULOS_EXCLUIR = {"embalagem", "pacote", "caixa", "display", "tela", "screen", "diagonal", "monitor", "volume", "frete", "produto embalado", "package"}
-PADROES_FORA_ESCOPO_TITULO = [r"^\s*(case|cover|protector|glass|pel[ií]cula|capa|capinha)\b", r"^\s*(toy|brinquedo)\b", r"^\s*(carregador|cabo|fonte|adaptador)\b"]
+
+TERMOS_TELEFONIA = {
+    "telefone celular", "celular", "mini celular", "mini phone", 
+    "micro celular", "phone", "dual sim", "dois chips", "2 chips", 
+    "sim card", "cartao sim", "chip gsm", "gsm", "imei", "sms", 
+    "faz chamadas", "realiza chamadas", "chamada de voz", "rede 2g", 
+    "rede 3g", "rede 4g", "lte", "bluetooth dialer", "discador bluetooth"
+}
+
+TERMOS_MINI_FORTES = {
+    "mini celular", "mini phone", "micro celular", "smallest phone", 
+    "tiny phone", "telefone gsm pequeno", "telefone cartao", "card phone", 
+    "ponto eletronico celular", "celular caneta", "celular batom", 
+    "celular isqueiro", "celular chaveiro", "celular chave de carro"
+}
+
+MODELOS_CONHECIDOS = {
+    "bm10", "bm20", "bm30", "bm50", "bm70", "bm90", "bm100", "bm200", 
+    "bm310", "bt11", "bt22", "b25", "b30", "b68", "cat b68", "j8", "j9", 
+    "j10", "k10", "k33", "k66", "soyes", "melrose", "long cz", "zanco", 
+    "l8star", "anica", "i17 pro", "i17 pro max"
+}
+
+PADROES_FORA_ESCOPO_TITULO = [
+    r"^\s*(capa|capinha|case|pelicula|vidro|protetor de tela)\b",
+    r"^\s*(carregador|cabo|fonte|adaptador|suporte|tripe)\b",
+    r"^\s*(bateria|display|tela|placa|conector|flex|gaveta|carcaca|tampa)\b",
+    r"^\s*(fone|headset|earbud|auricular|caixa de som|microfone)\b",
+    r"\b(capa|capinha|pelicula|carregador|bateria|display|tela)\s+para\s+(iphone|celular|smartphone|telefone)\b",
+    r"\bsmartwatch\b",
+    r"\brelogio inteligente\b",
+    r"^\s*tablet\b",
+    r"^\s*(miniatura|maquete|boneco|brinquedo)\b",
+]
+
+ROTULOS_DIMENSAO = {
+    "dimensoes", "dimensao", "tamanho do produto", "medidas do produto", 
+    "medida do produto", "altura", "largura", "comprimento", "profundidade", 
+    "espessura", "size", "dimensions"
+}
+
+ROTULOS_EXCLUIR = {
+    "embalagem", "pacote", "caixa", "display", "tela", "screen", 
+    "diagonal", "monitor", "volume", "frete", "produto embalado", "package"
+}
 
 @dataclass
 class AnaliseDimensional:
@@ -29,6 +71,25 @@ class AnaliseDimensional:
 
     def para_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+@dataclass
+class ResultadoClassificacao:
+    classificacao: str
+    motivo_classificacao: str
+    evidencia_telefonia: str = ""
+    evidencia_mini: str = ""
+    indicio_produto_telefonia: str = "NAO"
+    fora_escopo_titulo: str = "NAO"
+    motivo_fora_escopo: str = ""
+
+    def para_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+def _primeiro_termo(texto: str, termos: set[str]) -> str:
+    for termo in sorted(termos, key=len, reverse=True):
+        if termo in texto:
+            return termo
+    return ""
 
 def _numero(valor: str) -> float | None:
     texto = str(valor or "").strip().replace(" ", "")
@@ -149,8 +210,14 @@ def analisar_dimensoes_produto(dados: dict[str, Any]) -> dict[str, Any]:
         motivo_dimensoes="Dimensões corporais dentro do limite." if dentro else "Dimensões corporais acima do limite."
     ).para_dict()
 
-def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, Any], analise_anatel: dict[str, Any]) -> dict[str, Any]:
+def _analisar_indicios(dados: dict[str, Any]) -> dict[str, str]:
     titulo = normalizar_texto(dados.get("titulo") or "")
+    descricao = normalizar_texto(dados.get("descricao") or "")
+    atributos = dados.get("atributos") or {}
+    
+    atributos_texto = normalizar_texto(" | ".join(f"{chave}: {valor}" for chave, valor in atributos.items()))
+    texto_produto = " | ".join([titulo, descricao, atributos_texto])
+
     fora_escopo = ""
     for padrao in PADROES_FORA_ESCOPO_TITULO:
         match = re.search(padrao, titulo, flags=re.IGNORECASE)
@@ -158,36 +225,76 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
             fora_escopo = match.group(0).strip()
             break
 
+    evidencia_mini = _primeiro_termo(texto_produto, TERMOS_MINI_FORTES) or _primeiro_termo(texto_produto, MODELOS_CONHECIDOS)
+    evidencia_telefonia = _primeiro_termo(texto_produto, TERMOS_TELEFONIA)
+
+    if evidencia_mini and not evidencia_telefonia:
+        evidencia_telefonia = "modelo/formato conhecido com histórico de telefonia"
+
+    return {
+        "fora_escopo": "SIM" if fora_escopo else "NAO",
+        "motivo_fora_escopo": fora_escopo,
+        "evidencia_mini": evidencia_mini,
+        "evidencia_telefonia": evidencia_telefonia,
+        "tem_indicios": "SIM" if evidencia_mini or evidencia_telefonia else "NAO",
+    }
+
+def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, Any], analise_anatel: dict[str, Any]) -> dict[str, Any]:
+    indicios = _analisar_indicios(dados)
     dimensoes_confiaveis = analise_dimensional.get("dimensoes_confiaveis") == "SIM"
     dentro_limite = analise_dimensional.get("dentro_limite_dimensional") == "SIM"
     anatel_em_ordem = analise_anatel.get("anatel_em_ordem") == "SIM"
     codigo_anatel = str(analise_anatel.get("codigo_anatel_normalizado") or "").strip()
-
-    resultado = {"classificacao": "DESCARTADO", "motivo_classificacao": "", "fora_escopo_titulo": "SIM" if fora_escopo else "NAO", "motivo_fora_escopo": fora_escopo}
-
-    if fora_escopo:
-        resultado["motivo_classificacao"] = f"Produto fora do escopo identificado pelo título: {fora_escopo}."
-        return resultado
-    if not dimensoes_confiaveis:
-        resultado["classificacao"] = "SUSPEITO"
-        resultado["motivo_classificacao"] = "Aparelho localizado, mas dimensões confiáveis não foram encontradas."
-        return resultado
-    if not dentro_limite:
-        resultado["classificacao"] = "DESCARTADO"
-        resultado["motivo_classificacao"] = "Dimensões corporais maiores que o limite de 12 × 5,5 cm."
-        return resultado
-
     status_req = analise_anatel.get("situacao_requerimento_normalizada")
-    if status_req in {"CANCELADA", "SUSPENSA"}:
-        resultado["classificacao"] = "IRREGULAR"
-        resultado["motivo_classificacao"] = f"Homologação {status_req.lower()} torna o produto irregular."
-        return resultado
-    if anatel_em_ordem:
-        resultado["classificacao"] = "DESCARTADO"
-        resultado["motivo_classificacao"] = "Dimensões no limite, porém Anatel, marca e modelo conferem com a base."
-        return resultado
 
-    resultado["classificacao"] = "IRREGULAR"
-    if not codigo_anatel: resultado["motivo_classificacao"] = "Dimensões dentro do limite e código Anatel não localizado no anúncio."
-    else: resultado["motivo_classificacao"] = "Dimensões dentro do limite, mas código Anatel, marca ou modelo divergem da base."
-    return resultado
+    resultado = ResultadoClassificacao(
+        classificacao="DESCARTADO",
+        motivo_classificacao="",
+        evidencia_telefonia=indicios["evidencia_telefonia"],
+        evidencia_mini=indicios["evidencia_mini"],
+        indicio_produto_telefonia=indicios["tem_indicios"],
+        fora_escopo_titulo=indicios["fora_escopo"],
+        motivo_fora_escopo=indicios["motivo_fora_escopo"],
+    )
+
+    if indicios["fora_escopo"] == "SIM":
+        resultado.motivo_classificacao = f"Produto fora do escopo identificado pelo título: {indicios['motivo_fora_escopo']}."
+        return resultado.para_dict()
+
+    if not dimensoes_confiaveis:
+        if indicios["tem_indicios"] == "SIM":
+            resultado.classificacao = "SUSPEITO"
+            complemento = f" Anatel aponta Homologação {status_req.lower()}." if status_req in {"CANCELADA", "SUSPENSA"} else ""
+            resultado.motivo_classificacao = f"Há indícios de aparelho com telefonia, mas sem dimensões confiáveis.{complemento}"
+        else:
+            resultado.classificacao = "DESCARTADO"
+            resultado.motivo_classificacao = "Sem dimensões confiáveis e sem indícios suficientes de aparelho com telefonia."
+        return resultado.para_dict()
+
+    if not dentro_limite:
+        resultado.classificacao = "DESCARTADO"
+        resultado.motivo_classificacao = "Dimensões corporais maiores que o limite de 12 × 5,5 cm."
+        return resultado.para_dict()
+
+    if indicios["tem_indicios"] != "SIM":
+        resultado.classificacao = "DESCARTADO"
+        resultado.motivo_classificacao = "Dimensões reduzidas, mas sem indícios de telefone celular."
+        return resultado.para_dict()
+
+    if status_req in {"CANCELADA", "SUSPENSA"}:
+        resultado.classificacao = "IRREGULAR"
+        resultado.motivo_classificacao = f"Dimensões no limite, mas Homologação {status_req.lower()} torna o produto irregular."
+        return resultado.para_dict()
+
+    if anatel_em_ordem:
+        resultado.classificacao = "DESCARTADO"
+        resultado.motivo_classificacao = "Dimensões no limite, porém o código Anatel, a marca e o modelo conferem com a base."
+        return resultado.para_dict()
+
+    resultado.classificacao = "IRREGULAR"
+    if not codigo_anatel: 
+        resultado.motivo_classificacao = "Dimensões dentro do limite e código Anatel não localizado no anúncio."
+    else: 
+        resultado.motivo_classificacao = "Dimensões dentro do limite, mas código Anatel, marca ou modelo divergem da base."
+    
+    return resultado.para_dict()
