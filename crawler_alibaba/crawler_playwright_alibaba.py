@@ -26,7 +26,7 @@ from utils_alibaba import (
 @dataclass
 class ConfigAlibaba:
     txt: str = "buscar_alibaba.txt"
-    saida: Path | str | None = None  # <--- Habilita aceitar valor nulo
+    saida: Path | str | None = None
     limit: int = 100
     max_paginas: int = 2
     headless: bool = False
@@ -85,7 +85,8 @@ def _log_auditoria_anatel(dados: dict[str, Any], anatel: dict[str, Any], modelo_
     log("anatel", "Código         : anúncio=" + _valor_terminal(dados.get("codigo_anatel_principal")) + " | base=" + _valor_terminal(anatel.get("codigo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("codigo_confere_base")))
     log("anatel", "Situação Req.  : " + _valor_terminal(anatel.get("situacao_requerimento_base"), "NÃO LOCALIZADA") + " | emitida=" + _sim_nao_terminal(anatel.get("requerimento_emitido")))
     log("anatel", "Marca          : anúncio=" + _valor_terminal(dados.get("marca")) + " | base=" + _valor_terminal(anatel.get("fabricante_base")) + " | confere=" + _sim_nao_terminal(anatel.get("marca_confere_base")))
-    log("anatel", "Modelo         : anúncio=" + _valor_terminal(modelo_anuncio) + f" ({modelo_label or 'campo não identificado'})" + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("anatel", "Modelo Técnico : anúncio=" + _valor_terminal(modelo_anuncio) + f" ({modelo_label or 'campo não identificado'})" + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("anatel", "Nome Comercial : anúncio=" + _valor_terminal(dados.get("nome_comercial")) + " | base=" + _valor_terminal(anatel.get("nome_comercial_base")) + " | confere=" + _sim_nao_terminal(anatel.get("nome_comercial_confere_base")))
     log("anatel", "Resultado      : " + _valor_terminal(anatel.get("situacao_anatel"), "NÃO VERIFICADO") + " — " + _valor_terminal(anatel.get("motivo_anatel"), "sem motivo"))
 
 def _log_auditoria_classificacao(classificacao: dict[str, Any]) -> None:
@@ -196,6 +197,7 @@ async def executar_crawler_alibaba(config: ConfigAlibaba) -> dict[str, Any]:
         "total_visitados": total_visitados,
         "total_irregulares": sum(1 for item in produtos if item.get("classificacao") == "IRREGULAR"),
         "total_suspeitos": sum(1 for item in produtos if item.get("classificacao") == "SUSPEITO"),
+        "total_nao_classificados": sum(1 for item in produtos if item.get("classificacao") == "NÃO CLASSIFICADO"),
         "total_descartados": total_descartados,
         "total_produtos_no_parquet": len(produtos),
         "total_comentarios": 0,
@@ -249,6 +251,7 @@ async def _processar_produto(
             codigo=produto.get("codigo_anatel_principal", ""),
             marca=produto.get("marca", ""),
             modelo=modelo_anatel,
+            nome_comercial=produto.get("nome_comercial", ""), # Inclusão do Nome Comercial
             base=config.base_anatel
         )
         _log_auditoria_anatel(produto, analise_anatel, modelo_label, modelo_anatel)
@@ -261,6 +264,9 @@ async def _processar_produto(
 
         pid = gerar_id(produto.get("titulo"), produto.get("marca"), analise_anatel.get("codigo_anatel_normalizado"), url_produto)
 
+        # Ajuste do status para incluir as três categorias
+        status = "Irregular" if classificacao_final == "IRREGULAR" else "Suspeito" if classificacao_final == "SUSPEITO" else "Não Classificado" if classificacao_final == "NÃO CLASSIFICADO" else "Descartado"
+
         registro: Dict[str, Any] = {
             "pid": pid,
             "marketplace_id": "Alibaba",
@@ -269,11 +275,12 @@ async def _processar_produto(
             "codigo_anatel": analise_anatel.get("codigo_anatel_normalizado") or produto.get("codigo_anatel_principal") or "",
             "marca": produto.get("marca", ""),
             "preco": produto.get("preco", ""),
-            "status": "Irregular" if classificacao_final == "IRREGULAR" else "Suspeito" if classificacao_final == "SUSPEITO" else "Descartado",
+            "status": status,
             "motivo_validacao": motivo_final,
             "motivo_irregularidade": motivo_final if classificacao_final == "IRREGULAR" else "",
-            "warning": motivo_final if classificacao_final == "SUSPEITO" else analise_anatel.get("motivo_anatel", ""),
+            "warning": motivo_final if classificacao_final in ("SUSPEITO", "NÃO CLASSIFICADO") else analise_anatel.get("motivo_anatel", ""),
             "modelo": produto.get("modelo", ""),
+            "nome_comercial": produto.get("nome_comercial", ""),
             "modelo_alfanumerico": produto.get("modelo_alfanumerico", ""),
             "modelo_decisivo": modelo_anatel,
             "classificacao": classificacao_final,
@@ -282,6 +289,7 @@ async def _processar_produto(
             "codigo_confere_base": analise_anatel.get("codigo_confere_base", ""),
             "marca_confere_base": analise_anatel.get("marca_confere_base", ""),
             "modelo_confere_base": analise_anatel.get("modelo_confere_base", ""),
+            "nome_comercial_confere_base": analise_anatel.get("nome_comercial_confere_base", ""),
             "motivo_anatel": analise_anatel.get("motivo_anatel", ""),
             "data_hora_captura": momento.strftime("%d/%m/%Y %H:%M:%S")
         }
@@ -308,7 +316,9 @@ async def _processar_produto(
             except Exception: pass
 
 async def _tirar_print_produto(page: Page, saida: Path, registro: Dict[str, Any], status: str) -> str:
-    pasta = saida / "prints" / ("irregulares" if status == "IRREGULAR" else "suspeitos")
+    # Lógica ajustada para as novas pastas
+    nome_pasta = "irregulares" if status == "IRREGULAR" else "suspeitos" if status == "SUSPEITO" else "nao_classificados"
+    pasta = saida / "prints" / nome_pasta
     pasta.mkdir(parents=True, exist_ok=True)
     titulo = arquivo_seguro(registro.get("titulo") or "produto")
     identificador = registro.get("pid", "0000000")

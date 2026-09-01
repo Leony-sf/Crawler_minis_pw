@@ -8,7 +8,6 @@ from typing import Any, Dict, List
 
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
 
-# IMPORTAÇÕES CORRIGIDAS AQUI
 from utils_alibaba import limpar_url, normalizar_chave
 from base_anatel_alibaba import normalizar_codigo_anatel
 
@@ -223,6 +222,7 @@ async def extrair_produto(page: Page, url: str) -> Dict[str, Any]:
         "marca": marca,
         "fabricante": marca,
         "modelo": modelo,
+        "nome_comercial": titulo, # Título usado como proxy do nome comercial
         "modelo_detalhado": modelo,
         "modelo_alfanumerico": modelo,
         "numero_modelo": modelo,

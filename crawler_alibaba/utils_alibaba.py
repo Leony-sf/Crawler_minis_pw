@@ -14,19 +14,20 @@ import pandas as pd
 
 BASE_URL_ALIBABA = "https://www.alibaba.com"
 
+# Adicionado colunas de nome_comercial conforme solicitado no PDF
 PRODUCT_COLUMNS = [
     "pid", "marketplace_id", "titulo", "link", "codigo_anatel", "marca", "preco",
     "status", "motivo_validacao", "motivo_irregularidade", "warning", "modelo",
-    "modelo_alfanumerico", "modelo_decisivo", "classificacao", "evidencia_mini",
+    "nome_comercial", "modelo_alfanumerico", "modelo_decisivo", "classificacao", "evidencia_mini",
     "dimensoes_encontradas", "codigo_confere_base", "marca_confere_base",
-    "modelo_confere_base", "motivo_anatel", "data_hora_captura"
+    "modelo_confere_base", "nome_comercial_confere_base", "motivo_anatel", "data_hora_captura"
 ]
 
 COMMENT_COLUMNS = [
     "pid", "marketplace_id", "url", "link", "titulo", "name", "comentario_ordem",
     "comment", "comentario", "created_at", "query_busca", "classificacao", "status",
     "status_validacao", "codigo_anatel_principal", "anatel_number", "marca", "brand",
-    "modelo", "data_hora_captura", "data_hora_captura_iso", "referencia_captura",
+    "modelo", "nome_comercial", "data_hora_captura", "data_hora_captura_iso", "referencia_captura",
     "pasta_saida_execucao", "caminho_saida_execucao"
 ]
 
@@ -103,6 +104,7 @@ def criar_pastas_saida_alibaba(base: str | Path | None = None) -> Path:
     saida = saida.resolve()
     (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
+    (saida / "prints" / "nao_classificados").mkdir(parents=True, exist_ok=True) # Nova pasta
     return saida
 
 def metadados_captura(pasta_saida: Path, momento: datetime | None = None) -> dict[str, str]:

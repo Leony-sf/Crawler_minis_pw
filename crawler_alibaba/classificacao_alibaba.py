@@ -244,6 +244,7 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
     dimensoes_confiaveis = analise_dimensional.get("dimensoes_confiaveis") == "SIM"
     dentro_limite = analise_dimensional.get("dentro_limite_dimensional") == "SIM"
     anatel_em_ordem = analise_anatel.get("anatel_em_ordem") == "SIM"
+    situacao_anatel_geral = analise_anatel.get("situacao_anatel")
     codigo_anatel = str(analise_anatel.get("codigo_anatel_normalizado") or "").strip()
     status_req = analise_anatel.get("situacao_requerimento_normalizada")
 
@@ -281,6 +282,7 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
         resultado.motivo_classificacao = "Dimensões reduzidas, mas sem indícios de telefone celular."
         return resultado.para_dict()
 
+    # Novas regras incorporando a situação NÃO CLASSIFICADO (informações insuficientes ou conflitantes)
     if status_req in {"CANCELADA", "SUSPENSA"}:
         resultado.classificacao = "IRREGULAR"
         resultado.motivo_classificacao = f"Dimensões no limite, mas Homologação {status_req.lower()} torna o produto irregular."
@@ -288,13 +290,18 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
 
     if anatel_em_ordem:
         resultado.classificacao = "DESCARTADO"
-        resultado.motivo_classificacao = "Dimensões no limite, porém o código Anatel, a marca e o modelo conferem com a base."
+        resultado.motivo_classificacao = "Dimensões no limite, porém o código Anatel, a marca e os modelos/nomes comerciais conferem."
+        return resultado.para_dict()
+
+    if situacao_anatel_geral == "NÃO CLASSIFICADO":
+        resultado.classificacao = "NÃO CLASSIFICADO"
+        resultado.motivo_classificacao = f"Dimensões no limite, mas requer intervenção humana: {analise_anatel.get('motivo_anatel')}"
         return resultado.para_dict()
 
     resultado.classificacao = "IRREGULAR"
     if not codigo_anatel: 
         resultado.motivo_classificacao = "Dimensões dentro do limite e código Anatel não localizado no anúncio."
     else: 
-        resultado.motivo_classificacao = "Dimensões dentro do limite, mas código Anatel, marca ou modelo divergem da base."
+        resultado.motivo_classificacao = "Dimensões dentro do limite, mas dados Anatel divergem gravemente."
     
     return resultado.para_dict()
