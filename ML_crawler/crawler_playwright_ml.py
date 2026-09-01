@@ -217,11 +217,6 @@ def _conectar_chrome_existente(
     playwright,
     porta: int = 9225,
 ) -> BrowserContext:
-    """Conecta ao Google Chrome já aberto pelo usuário via CDP.
-
-    O crawler não cria perfil, não abre outro navegador e não fecha
-    o Chrome do usuário ao final.
-    """
     endereco = f"http://127.0.0.1:{porta}"
 
     log("chrome", f"Conectando ao Chrome já aberto em {endereco}...")
@@ -258,13 +253,17 @@ def _salvar_print(
     linha: dict[str, Any],
 ) -> str:
     classificacao = str(linha.get("classificacao") or "").upper()
-    if classificacao not in {"IRREGULAR", "SUSPEITO"}:
+    if classificacao not in {"IRREGULAR", "SUSPEITO", "NAO_CLASSIFICADO"}:
         return ""
 
-    pasta = (
-        pasta_saida / "prints" /
-        ("irregulares" if classificacao == "IRREGULAR" else "suspeitos")
-    )
+    if classificacao == "IRREGULAR":
+        subpasta = "irregulares"
+    elif classificacao == "SUSPEITO":
+        subpasta = "suspeitos"
+    else:
+        subpasta = "nao_classificados"
+
+    pasta = pasta_saida / "prints" / subpasta
     pasta.mkdir(parents=True, exist_ok=True)
 
     identificador = linha.get("id_produto") or gerar_id(
@@ -398,6 +397,7 @@ def _log_auditoria_anatel(
     anatel: dict[str, Any],
     modelo_label: str,
     modelo_anuncio: str,
+    nome_comercial_anuncio: str,
 ) -> None:
     log(
         "anatel",
@@ -436,6 +436,15 @@ def _log_auditoria_anatel(
         + _valor_terminal(anatel.get("modelo_base"))
         + " | confere="
         + _sim_nao_terminal(anatel.get("modelo_confere_base")),
+    )
+    log(
+        "anatel",
+        "Nome Com.      : anúncio="
+        + _valor_terminal(nome_comercial_anuncio)
+        + " | base="
+        + _valor_terminal(anatel.get("nome_comercial_base"))
+        + " | confere="
+        + _sim_nao_terminal(anatel.get("nome_comercial_confere_base")),
     )
     log(
         "anatel",
@@ -529,6 +538,8 @@ def _linha_produto(
         status_legado = "Irregular"
     elif classificacao_final == "SUSPEITO":
         status_legado = "Suspeito"
+    elif classificacao_final == "NAO_CLASSIFICADO":
+        status_legado = "Não Classificado"
     else:
         status_legado = "Descartado"
 
@@ -896,17 +907,22 @@ def rodar_playwright_mercadolivre(
                             modelo_label_anatel, modelo_anatel = _modelo_decisivo(
                                 dados
                             )
+                            nome_comercial_anatel = str(dados.get("modelo") or "")
+                            
                             anatel = analisar_situacao_anatel(
-                                dados.get("codigo_anatel_principal", ""),
-                                dados.get("marca", ""),
-                                modelo_anatel,
-                                base_anatel,
+                                codigo=dados.get("codigo_anatel_principal", ""),
+                                marca=dados.get("marca", ""),
+                                modelo_tecnico=modelo_anatel,
+                                nome_comercial=nome_comercial_anatel,
+                                base=base_anatel,
                             )
+                            
                             _log_auditoria_anatel(
                                 dados,
                                 anatel,
                                 modelo_label_anatel,
                                 modelo_anatel,
+                                nome_comercial_anatel,
                             )
 
                             classificacao = classificar_produto(
@@ -979,15 +995,12 @@ def rodar_playwright_mercadolivre(
                     pagina_atual += 1
 
         finally:
-            # Salva até mesmo quando não há produtos relevantes.
             salvar_parquet_incremental(
                 pasta_saida,
                 produtos,
                 comentarios,
             )
 
-            # O contexto pertence ao Chrome aberto pelo usuário via CDP.
-            # Não fechamos o contexto para não encerrar o navegador.
             log(
                 "chrome",
                 "Execução finalizada; Chrome mantido aberto.",
@@ -1004,6 +1017,11 @@ def rodar_playwright_mercadolivre(
             1
             for item in produtos
             if item.get("classificacao") == "SUSPEITO"
+        ),
+        "total_nao_classificados": sum(
+            1
+            for item in produtos
+            if item.get("classificacao") == "NAO_CLASSIFICADO"
         ),
         "total_descartados": total_descartados,
         "total_produtos_no_parquet": len(produtos),
