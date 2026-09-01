@@ -1,3 +1,4 @@
+"""Crawler Amazon Playwright com validação ANATEL."""
 from __future__ import annotations
 
 import re
@@ -86,6 +87,7 @@ class BaseAnatel:
     coluna_codigo: str
     coluna_fabricante: str = ""
     coluna_modelo: str = ""
+    coluna_nome_comercial: str = ""
     coluna_situacao_requerimento: str = ""
 
     def buscar_codigo_exato(self, codigo: str) -> pd.DataFrame:
@@ -110,7 +112,11 @@ def carregar_base_anatel(caminho: str | Path | None, prefix_len: int = 5) -> Bas
         raise ValueError(f"Não foi encontrada coluna de homologação. Colunas: {list(df.columns)}")
 
     col_fab = _achar_coluna(df, [["nome", "fabricante"], ["fabricante"], ["marca"]])
-    col_modelo = _achar_coluna(df, [["modelo"], ["nome", "modelo"]])
+    
+    # Restringe Modelo e Nome Comercial em colunas separadas
+    col_modelo = _achar_coluna_exata(df, "Modelo") or _achar_coluna(df, [["modelo"]])
+    col_nome_comercial = _achar_coluna_exata(df, "Nome Comercial") or _achar_coluna(df, [["nome", "comercial"]])
+    
     col_situacao = _achar_coluna_exata(df, "Situação do Requerimento")
     
     if not col_situacao:
@@ -127,5 +133,6 @@ def carregar_base_anatel(caminho: str | Path | None, prefix_len: int = 5) -> Bas
         coluna_codigo=col_hom,
         coluna_fabricante=col_fab,
         coluna_modelo=col_modelo,
+        coluna_nome_comercial=col_nome_comercial,
         coluna_situacao_requerimento=col_situacao,
     )

@@ -135,6 +135,7 @@ def criar_pastas_saida(base: str | Path | None = None) -> Path:
     (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "irregulares" / "cpf").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
+    (saida / "prints" / "nao_classificados").mkdir(parents=True, exist_ok=True)
     return saida
 
 def metadados_captura(pasta_saida: Path, momento: datetime | None = None) -> dict[str, str]:

@@ -30,6 +30,37 @@ def _texto_compativel(anuncio: str, base: str) -> bool:
         return False
     return anuncio_norm == base_norm or anuncio_norm in base_norm or base_norm in anuncio_norm
 
+def _equivalencia_marcas(anuncio: str, base: str) -> bool:
+    anuncio_norm = normalizar_texto(anuncio)
+    base_norm = normalizar_texto(base)
+    if not anuncio_norm or not base_norm: 
+        return False
+    
+    aliases = {
+        "xiaomi": ["poco", "redmi", "mi", "xiaomi"],
+        "apple": ["apple", "iphone"],
+        "samsung": ["samsung", "galaxy"],
+        "motorola": ["motorola", "moto", "lenovo"]
+    }
+    for marca, lista in aliases.items():
+        if marca in base_norm or marca in anuncio_norm:
+            if any(t in anuncio_norm for t in lista) and any(t in base_norm for t in lista):
+                return True
+    return _texto_compativel(anuncio, base)
+
+def _equivalencia_nome_comercial(anuncio: str, base: str) -> bool:
+    anuncio_norm = normalizar_texto(anuncio)
+    base_norm = normalizar_texto(base)
+    if not anuncio_norm or not base_norm: 
+        return False
+    
+    subs = {"pro plus": "pro+", "pro+": "pro+", "5g": "5g"}
+    for k, v in subs.items():
+        anuncio_norm = anuncio_norm.replace(k, v)
+        base_norm = base_norm.replace(k, v)
+        
+    return anuncio_norm == base_norm or anuncio_norm in base_norm or base_norm in anuncio_norm
+
 def _normalizar_situacao_requerimento(valor: Any) -> str:
     texto = normalizar_texto(valor)
     if "cancelad" in texto:
@@ -54,7 +85,7 @@ def _modelo_decisivo_capturado(dados: DadosProduto) -> tuple[str, str]:
             return label, str(valor).strip()
     return "", ""
 
-def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAnatel | None) -> dict[str, str]:
+def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, nome_comercial_anuncio: str, base: BaseAnatel | None) -> dict[str, str]:
     codigo_norm = normalizar_codigo_anatel(codigo)
     resultado = {
         "codigo_anatel": str(codigo or ""),
@@ -63,6 +94,8 @@ def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAna
         "codigo_confere_base": "NAO",
         "marca_confere_base": "NAO",
         "modelo_confere_base": "NAO",
+        "nome_comercial_confere_base": "NAO",
+        "nome_comercial_base": "",
         "situacao_requerimento_base": "",
         "situacao_requerimento_normalizada": "NAO_INFORMADA",
         "requerimento_emitido": "NAO",
@@ -92,6 +125,7 @@ def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAna
     linha = encontrados.iloc[0]
     fabricante_base = str(linha.get(base.coluna_fabricante) or "") if base.coluna_fabricante else ""
     modelo_base = str(linha.get(base.coluna_modelo) or "") if base.coluna_modelo else ""
+    nome_comercial_base = str(linha.get(base.coluna_nome_comercial) or "") if base.coluna_nome_comercial else ""
     sit_req_base = str(linha.get(base.coluna_situacao_requerimento) or "")
     sit_req_norm = _normalizar_situacao_requerimento(sit_req_base)
 
@@ -101,14 +135,17 @@ def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAna
         "situacao_requerimento_base": sit_req_base,
         "situacao_requerimento_normalizada": sit_req_norm,
         "requerimento_emitido": "SIM" if sit_req_norm == "EMITIDA" else "NAO",
+        "nome_comercial_base": nome_comercial_base,
     })
 
-    marca_confere = _texto_compativel(marca, fabricante_base)
-    modelo_confere = _texto_compativel(modelo, modelo_base)
+    marca_confere = _equivalencia_marcas(marca, fabricante_base)
+    modelo_confere = _texto_compativel(modelo, modelo_base) if modelo_base else False
+    nome_com_confere = _equivalencia_nome_comercial(nome_comercial_anuncio, nome_comercial_base) if nome_comercial_base else True
 
     resultado.update({
         "marca_confere_base": "SIM" if marca_confere else "NAO",
         "modelo_confere_base": "SIM" if modelo_confere else "NAO",
+        "nome_comercial_confere_base": "SIM" if nome_com_confere else "NAO",
     })
 
     divergencias = []
@@ -116,9 +153,12 @@ def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAna
     elif not fabricante_base: divergencias.append("marca/fabricante ausente na base")
     elif not marca_confere: divergencias.append("marca do anúncio diferente da base")
 
-    if not modelo: divergencias.append("modelo não capturado no anúncio")
-    elif not modelo_base: divergencias.append("modelo ausente na base")
-    elif not modelo_confere: divergencias.append("modelo do anúncio diferente da base")
+    if not modelo: divergencias.append("modelo técnico não capturado no anúncio")
+    elif not modelo_base: divergencias.append("modelo técnico ausente na base")
+    elif not modelo_confere: divergencias.append("modelo técnico do anúncio diferente da base")
+    
+    if nome_comercial_base and not nome_com_confere:
+        divergencias.append("nome comercial do anúncio diferente da base")
 
     if sit_req_norm in {"CANCELADA", "SUSPENSA"}:
         resultado.update({
@@ -129,14 +169,14 @@ def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAna
 
     if sit_req_norm != "EMITIDA":
         resultado.update({
-            "situacao_anatel": "REVISAR",
+            "situacao_anatel": "NAO_CLASSIFICADO",
             "motivo_anatel": f"A coluna 'Situação do Requerimento' contém um valor não reconhecido: '{sit_req_base or 'não informado'}'."
         })
         return resultado
 
     if divergencias:
         resultado.update({
-            "situacao_anatel": "REVISAR",
+            "situacao_anatel": "NAO_CLASSIFICADO",
             "motivo_anatel": "Homologação Emitida e código exato, porém " + "; ".join(divergencias) + "."
         })
         return resultado
@@ -144,7 +184,7 @@ def analisar_situacao_anatel(codigo: str, marca: str, modelo: str, base: BaseAna
     resultado.update({
         "anatel_em_ordem": "SIM",
         "situacao_anatel": "REGULAR",
-        "motivo_anatel": "Homologação Emitida; código, marca/fabricante e modelo do anúncio conferem com a base."
+        "motivo_anatel": "Homologação Emitida; código, marca/fabricante, modelo e nome comercial do anúncio conferem com a base."
     })
     return resultado
 
@@ -179,6 +219,12 @@ def classificar_produto(dados: DadosProduto, analise_dimensional: dict[str, Any]
         return {
             "classificacao": "DESCARTADO",
             "motivo_classificacao": "Dimensões dentro do limite, porém o código Anatel, a marca e o modelo estão em conformidade com a base."
+        }
+        
+    if anatel.get("situacao_anatel") == "NAO_CLASSIFICADO":
+        return {
+            "classificacao": "NÃO CLASSIFICADO",
+            "motivo_classificacao": "Informações não permitem concluir regularidade com segurança. " + anatel.get("motivo_anatel", "")
         }
 
     return {
