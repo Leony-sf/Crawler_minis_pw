@@ -12,6 +12,7 @@ import pandas as pd
 PRODUCT_COLUMNS = [
     "pid", "marketplace_id", "titulo", "link", "codigo_anatel", "marca", "preco",
     "status", "motivo_validacao", "motivo_irregularidade", "warning", "modelo",
+    "nome_comercial", "nome_comercial_confere_base", 
     "modelo_alfanumerico", "modelo_decisivo", "classificacao", "evidencia_mini",
     "dimensoes_encontradas", "codigo_confere_base", "marca_confere_base",
     "modelo_confere_base", "motivo_anatel", "data_hora_captura",
@@ -56,6 +57,7 @@ def criar_pastas_saida(base: str | Path | None = None) -> Path:
     # Cria ESTRITAMENTE as pastas padrão
     (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
+    (saida / "prints" / "nao_classificados").mkdir(parents=True, exist_ok=True)
     return saida
 
 def metadados_captura(pasta_saida: Path, momento: datetime | None = None) -> dict[str, str]:

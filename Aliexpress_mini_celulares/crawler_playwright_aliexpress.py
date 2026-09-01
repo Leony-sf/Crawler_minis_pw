@@ -70,6 +70,7 @@ def _log_auditoria_anatel(dados: dict, anatel: dict) -> None:
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO]  ANATEL           Situação Req.  : {_valor_terminal(anatel.get('situacao_requerimento_base'), 'NÃO LOCALIZADA')} | emitida={_sim_nao_terminal(anatel.get('requerimento_emitido'))}")
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO]  ANATEL           Marca          : anúncio={_valor_terminal(dados.get('marca'))} | base={_valor_terminal(anatel.get('fabricante_base'))} | confere={_sim_nao_terminal(anatel.get('marca_confere_base'))}")
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO]  ANATEL           Modelo         : anúncio={_valor_terminal(dados.get('modelo'))} | base={_valor_terminal(anatel.get('modelo_base'))} | confere={_sim_nao_terminal(anatel.get('modelo_confere_base'))}")
+    print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO]  ANATEL           Nome Com.      : anúncio={_valor_terminal(dados.get('nome_comercial'))} | base={_valor_terminal(anatel.get('nome_comercial_base'))} | confere={_sim_nao_terminal(anatel.get('nome_comercial_confere_base'))}")
     print(f"[{datetime.now().strftime('%H:%M:%S')}] [INFO]  ANATEL           Resultado      : {_valor_terminal(anatel.get('situacao_anatel'), 'NÃO VERIFICADO')} — {_valor_terminal(anatel.get('motivo_anatel'), 'sem motivo')}")
 
 def _log_auditoria_classificacao(linha: dict) -> None:
@@ -171,14 +172,12 @@ async def _atributo_primeiro(page, seletores: List[str], atributo: str = "src", 
 async def _capturar_comentarios(page) -> List[str]:
     comentarios = []
     
-    # 1. Rola para o topo para garantir que o menu flutuante ou âncoras estejam clicáveis
     try:
         await page.evaluate("window.scrollTo(0, 0)")
         await page.wait_for_timeout(1000)
     except Exception:
         pass
 
-    # 2. Clicar ativamente na aba de Avaliações via JS
     await page.evaluate("""
         () => {
             const elementos = document.querySelectorAll('div, span, a, button, li');
@@ -189,10 +188,8 @@ async def _capturar_comentarios(page) -> List[str]:
             }
         }
     """)
-    # Pausa estendida e obrigatória para a API do AliExpress devolver os textos
     await page.wait_for_timeout(3000) 
 
-    # 3. Rolar a página para baixo para forçar o carregamento das imagens e textos dos itens
     try:
         await page.evaluate("window.scrollBy(0, 800)")
         await page.wait_for_timeout(1000)
@@ -201,18 +198,15 @@ async def _capturar_comentarios(page) -> List[str]:
     except Exception:
         pass
 
-    # 4. Busca agressiva de comentários via JS (Mapeia as principais classes do AliExpress)
     comentarios_js = await page.evaluate('''
         () => {
             const out = [];
-            // Seletores comuns do AliExpress para comentários
             const els = document.querySelectorAll(
                 '[class*="feedback-item"], [class*="review-content"], [class*="buyer-review"], [class*="review-text"], .buyer-feedback, [data-pl="product-reviews"] span'
             );
             
             for(let el of els) {
                 const txt = (el.innerText || '').replace(/\\s+/g, ' ').trim();
-                // Filtra textos muito curtos ou vazios
                 if(txt.length > 15 && !txt.includes('AliExpress') && !out.includes(txt)) {
                     out.push(txt);
                 }
@@ -224,7 +218,6 @@ async def _capturar_comentarios(page) -> List[str]:
     if comentarios_js:
         comentarios.extend(comentarios_js)
 
-    # 5. Se o JS falhar, tenta com o Playwright como fallback de segurança
     if not comentarios:
         seletores = [
             "[class*='feedback-item']", 
@@ -260,42 +253,36 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
     
-    # 1. Rolar suavemente como um humano para ativar o lazy loading
     await page.mouse.wheel(0, 800)
     await page.wait_for_timeout(2000)
 
-    # 2. Clicar na aba "Detalhes" usando as ferramentas nativas do Playwright
     for aba_texto in ["Detalhes", "Specifications", "Especificações"]:
         try:
             aba = page.get_by_text(aba_texto, exact=True).first
             if await aba.count() > 0:
-                await aba.scroll_into_view_if_needed() # Puxa para a tela
+                await aba.scroll_into_view_if_needed()
                 await page.wait_for_timeout(500)
                 await aba.click(timeout=3000)
-                await page.wait_for_timeout(2000) # Espera a aba renderizar
+                await page.wait_for_timeout(2000)
                 break
         except Exception:
             pass
 
-    # 3. Rolar mais um pouco para o botão "Ver mais" aparecer na tela
     await page.mouse.wheel(0, 600)
     await page.wait_for_timeout(1000)
 
-    # 4. Clicar no botão "Ver mais" nativamente
     for btn_texto in ["Ver mais", "View More", "Show more", "Mais"]:
         try:
-            # Pega o último botão (geralmente o que fica no final da tabela)
             btn = page.get_by_text(btn_texto, exact=False).last 
             if await btn.count() > 0:
                 await btn.scroll_into_view_if_needed()
                 await page.wait_for_timeout(500)
                 await btn.click(timeout=3000)
-                await page.wait_for_timeout(2000) # Espera a tabela expandir
+                await page.wait_for_timeout(2000)
                 break
         except Exception:
             pass
 
-    # 5. Dá uma última rolada para garantir que toda a tabela expandida carregou
     await rolar_pagina(page, passos=2, pausa=0.5)
 
     titulo = await _texto_primeiro(page, ["h1", "[data-pl='product-title'], .product-title"])
@@ -313,7 +300,6 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
 
-    # Lógica de extração de dados mantida
     atributos = await page.evaluate(
         """
         () => {
@@ -353,10 +339,16 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
 
     marca = ""
     modelo = ""
+    nome_comercial = ""
+    
     for k, v in atributos.items():
         kl = str(k).lower()
-        if "brand" in kl or "marca" in kl: marca = v
-        if "model" in kl or "modelo" in kl: modelo = v
+        if "brand" in kl or "marca" in kl: 
+            marca = v
+        elif "model" in kl or "modelo" in kl: 
+            modelo = v
+        elif "name" in kl or "nome" in kl or "comercial" in kl: 
+            if not nome_comercial: nome_comercial = v
 
     codigo_anatel = _extrair_codigo_anatel(atributos, texto_pagina)
     comentarios = await _capturar_comentarios(page)
@@ -366,6 +358,7 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
         "preco": preco,
         "marca": marca,
         "modelo": modelo,
+        "nome_comercial": nome_comercial,
         "codigo_anatel_principal": codigo_anatel,
         "imagem": imagem,
         "atributos": atributos,
@@ -484,6 +477,7 @@ async def rodar_crawler_aliexpress(
                             "atributos": detalhes.get("atributos", {}),
                             "marca": detalhes.get("marca", ""),
                             "modelo": detalhes.get("modelo", ""),
+                            "nome_comercial": detalhes.get("nome_comercial", ""),
                             "codigo_anatel_principal": detalhes.get("codigo_anatel_principal", ""),
                             "url": url_produto,
                             "preco": detalhes.get("preco", ""),
@@ -497,6 +491,7 @@ async def rodar_crawler_aliexpress(
                             dados_para_ml["codigo_anatel_principal"],
                             dados_para_ml["marca"],
                             dados_para_ml["modelo"],
+                            dados_para_ml["nome_comercial"],
                             base_anatel
                         )
                         _log_auditoria_anatel(dados_para_ml, anatel)
@@ -537,6 +532,8 @@ async def rodar_crawler_aliexpress(
                             "warning": motivo_final if status_final == "SUSPEITO" else "",
                             "created_at": momento.strftime("%Y-%m-%d"),
                             "modelo": dados_para_ml["modelo"],
+                            "nome_comercial": dados_para_ml["nome_comercial"],
+                            "nome_comercial_confere_base": anatel.get("nome_comercial_confere_base", ""),
                             "modelo_detalhado": "",
                             "modelo_alfanumerico": "",
                             "numero_modelo": dados_para_ml["modelo"],
@@ -557,7 +554,13 @@ async def rodar_crawler_aliexpress(
                         linha.update(anatel)
                         linha.update(metadados_captura(base_saida, momento))
 
-                        pasta_categoria = "irregulares" if status_final == "IRREGULAR" else "suspeitos"
+                        if status_final == "IRREGULAR":
+                            pasta_categoria = "irregulares"
+                        elif status_final in ["NÃO CLASSIFICADO", "NAO CLASSIFICADO", "NAO_CLASSIFICADO"]:
+                            pasta_categoria = "nao_classificados"
+                        else:
+                            pasta_categoria = "suspeitos"
+
                         linha["print_path"] = await _print_produto(produto_page, base_saida, pasta_categoria, titulo_final, url_produto)
                         
                         produtos.append(linha)
