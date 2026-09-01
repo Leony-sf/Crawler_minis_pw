@@ -19,6 +19,7 @@ TERMOS_DESCARTE_OBVIO_BUSCA = ["chocolate", "amendoim", "amêndoa", "biscoito", 
 class DadosProduto:
     url: str
     titulo: str
+    nome_comercial: str
     preco: str
     codigo_anatel_principal: str
     codigo_anatel_normalizado: str
@@ -78,7 +79,6 @@ async def coletar_links_resultados(page: Page, vistos_globais: set[str]) -> List
     await rolar_busca(page)
     try: await page.locator("a[href*='/produto/'], a[href*='/p/']").first.wait_for(timeout=3500)
     except Exception: pass
-
     script = """
     () => {
         const out = new Set();
@@ -94,7 +94,6 @@ async def coletar_links_resultados(page: Page, vistos_globais: set[str]) -> List
     """
     try: links = await page.evaluate(script) or []
     except Exception: links = []
-
     validos = []
     for href in links:
         url = normalizar_url(href)
@@ -139,27 +138,20 @@ async def extrair_blocos_informacao(page: Page) -> str:
 async def extrair_produto_carrefour(page: Page) -> DadosProduto:
     await esperar_carregamento(page)
     await fechar_popups_basicos(page)
-
     jsonld = await extrair_json_ld(page)
-    
     try: titulo = limpar_texto(await page.locator("h1, [data-testid='product-title']").first.inner_text(timeout=2000))
     except Exception: titulo = jsonld.get("name", "")
-
     try: preco = limpar_texto(await page.locator("[data-testid='price-value'], [class*='price']").first.inner_text(timeout=1500))
     except Exception: preco = f"R$ {jsonld.get('price', '')}"
-
     detalhes = await extrair_blocos_informacao(page)
     texto_completo = f"{titulo} | {detalhes}"
-
     marca = jsonld.get("brand", "")
     if not marca:
         m = re.search(r"(?i)\b(?:marca|fabricante)\s*[:\-]\s*([a-zA-Z0-9\s]{2,20})", detalhes)
         if m: marca = m.group(1).strip()
-
     modelo = ""
     m_modelo = re.search(r"(?i)\bmodelo\s*[:\-]\s*([a-zA-Z0-9\-\s]{2,30})", detalhes)
     if m_modelo: modelo = m_modelo.group(1).strip()
-
     codigo_anatel = ""
     for padrao in [r"(?i)anatel[^\d]{0,45}(\d{8,14})", r"\b(\d{5}[-\s]?\d{2}[-\s]?\d{4})\b"]:
         m_anatel = re.search(padrao, texto_completo)
@@ -168,10 +160,10 @@ async def extrair_produto_carrefour(page: Page) -> DadosProduto:
             if 8 <= len(cand) <= 14:
                 codigo_anatel = cand
                 break
-
     return DadosProduto(
         url=page.url,
         titulo=titulo,
+        nome_comercial=titulo,
         preco=preco,
         codigo_anatel_principal=codigo_anatel,
         codigo_anatel_normalizado=normalizar_codigo_anatel(codigo_anatel),
@@ -192,11 +184,9 @@ def _parse_medida_cm(valor: str, unidade: str) -> float:
 def analisar_mini_celular_carrefour(dados: DadosProduto, maior_max_cm: float = 12.0, largura_max_cm: float = 5.5) -> dict[str, Any]:
     try: pacote = json.loads(dados.atributos_json)
     except Exception: pacote = {}
-    
     texto = normalizar_texto(pacote.get("detalhes_brutos", "")).lower()
     padrao_mult = re.compile(r"(\d+(?:[\.,]\d+)?)\s*(cm|mm)?\s*(?:x|X|×)\s*(\d+(?:[\.,]\d+)?)\s*(cm|mm)?(?:.*?(\d+(?:[\.,]\d+)?)\s*(cm|mm)?)?")
     candidatos = []
-    
     for m in padrao_mult.finditer(texto):
         uns = [m.group(2), m.group(4), m.group(6)]
         upadrao = next((u for u in reversed(uns) if u), "cm")
@@ -206,24 +196,8 @@ def analisar_mini_celular_carrefour(dados: DadosProduto, maior_max_cm: float = 1
         if len(vals) >= 2 and all(v < 40 for v in vals):
             vals = sorted(vals, reverse=True)
             candidatos.append((vals[0], vals[1], vals[2] if len(vals) >= 3 else None, m.group(0)))
-
     if not candidatos:
-        return {
-            "dimensoes_encontradas": "NAO",
-            "dimensoes_confiaveis": "NAO",
-            "dentro_limite_dimensional": "NAO_VERIFICADO",
-            "origem_dimensoes": "",
-        }
-
+        return {"dimensoes_encontradas": "NAO", "dimensoes_confiaveis": "NAO", "dentro_limite_dimensional": "NAO_VERIFICADO", "origem_dimensoes": ""}
     maior_cm, largura_cm, espessura_cm, ev = candidatos[0]
     dentro = maior_cm <= maior_max_cm and largura_cm <= largura_max_cm
-
-    return {
-        "dimensoes_encontradas": "SIM",
-        "dimensoes_confiaveis": "SIM",
-        "dentro_limite_dimensional": "SIM" if dentro else "NAO",
-        "altura_cm": maior_cm,
-        "largura_cm": largura_cm,
-        "espessura_cm": espessura_cm,
-        "origem_dimensoes": ev,
-    }
+    return {"dimensoes_encontradas": "SIM", "dimensoes_confiaveis": "SIM", "dentro_limite_dimensional": "SIM" if dentro else "NAO", "altura_cm": maior_cm, "largura_cm": largura_cm, "espessura_cm": espessura_cm, "origem_dimensoes": ev}
