@@ -34,6 +34,18 @@ def normalizar_codigo_anatel(valor: Any) -> str:
     return digitos[-12:]
 
 
+def normalizar_nome_comercial(texto: str) -> str:
+    """Aplica as equivalências controladas antes de comparar."""
+    t = normalizar_texto(texto)
+    if not t:
+        return ""
+    # Equivalências controladas exigidas
+    t = t.replace("pro plus", "pro+")
+    t = t.replace("5 g", "5g")
+    t = t.replace("4 g", "4g")
+    return t
+
+
 def _ler_csv(caminho: str | Path) -> pd.DataFrame:
     path = Path(caminho).expanduser().resolve()
     if not path.is_file():
@@ -113,6 +125,7 @@ class BaseAnatel:
     coluna_codigo: str
     coluna_fabricante: str = ""
     coluna_modelo: str = ""
+    coluna_nome_comercial: str = ""
     coluna_situacao_requerimento: str = ""
 
     def buscar_codigo_exato(self, codigo: str) -> pd.DataFrame:
@@ -170,10 +183,11 @@ def carregar_base_anatel(
         ["fabricante"],
         ["marca"],
     ])
-    coluna_modelo = _achar_coluna(df, [
-        ["modelo"],
-        ["nome", "modelo"],
-    ])
+    
+    # As colunas abaixo agora são buscadas pelo nome exato, conforme documentação
+    coluna_modelo = _achar_coluna_exata(df, "Modelo")
+    coluna_nome_comercial = _achar_coluna_exata(df, "Nome Comercial")
+    
     coluna_situacao_requerimento = _achar_coluna_exata(
         df,
         "Situação do Requerimento",
@@ -203,6 +217,7 @@ def carregar_base_anatel(
         coluna_codigo=coluna_codigo,
         coluna_fabricante=coluna_fabricante,
         coluna_modelo=coluna_modelo,
+        coluna_nome_comercial=coluna_nome_comercial,
         coluna_situacao_requerimento=coluna_situacao_requerimento,
     )
 
@@ -225,7 +240,8 @@ def _normalizar_situacao_requerimento(valor: Any) -> str:
 def analisar_situacao_anatel(
     codigo: str,
     marca: str,
-    modelo: str,
+    modelo_tecnico: str,
+    nome_comercial: str,
     base: BaseAnatel | None,
 ) -> dict[str, str]:
     codigo_norm = normalizar_codigo_anatel(codigo)
@@ -237,6 +253,7 @@ def analisar_situacao_anatel(
         "codigo_confere_base": "NAO",
         "marca_confere_base": "NAO",
         "modelo_confere_base": "NAO",
+        "nome_comercial_confere_base": "NAO",
         "situacao_requerimento_base": "",
         "situacao_requerimento_normalizada": "NAO_INFORMADA",
         "requerimento_emitido": "NAO",
@@ -245,6 +262,7 @@ def analisar_situacao_anatel(
         "motivo_anatel": "Código Anatel não localizado no anúncio.",
         "fabricante_base": "",
         "modelo_base": "",
+        "nome_comercial_base": "",
     }
 
     if not codigo_norm:
@@ -282,6 +300,11 @@ def analisar_situacao_anatel(
         if base.coluna_modelo
         else ""
     )
+    nome_comercial_base = (
+        str(linha.get(base.coluna_nome_comercial) or "")
+        if base.coluna_nome_comercial
+        else ""
+    )
 
     situacao_requerimento_base = str(
         linha.get(base.coluna_situacao_requerimento) or ""
@@ -297,26 +320,27 @@ def analisar_situacao_anatel(
         "codigo_confere_base": "SIM",
         "fabricante_base": fabricante_base,
         "modelo_base": modelo_base,
+        "nome_comercial_base": nome_comercial_base,
         "situacao_requerimento_base": situacao_requerimento_base,
-        "situacao_requerimento_normalizada": (
-            situacao_requerimento_normalizada
-        ),
+        "situacao_requerimento_normalizada": situacao_requerimento_normalizada,
     })
 
-    # As três comparações são exclusivamente ANÚNCIO x BASE.
-    # A situação do requerimento é uma regra independente.
-    marca_confere = _texto_compativel(
-        marca,
-        fabricante_base,
-    )
-    modelo_confere = _texto_compativel(
-        modelo,
-        modelo_base,
-    )
+    marca_confere = _texto_compativel(marca, fabricante_base)
+    modelo_confere = _texto_compativel(modelo_tecnico, modelo_base)
+    
+    anuncio_nc_norm = normalizar_nome_comercial(nome_comercial)
+    base_nc_norm = normalizar_nome_comercial(nome_comercial_base)
+    nome_comercial_confere = False
+    
+    if anuncio_nc_norm and base_nc_norm:
+        nome_comercial_confere = (anuncio_nc_norm in base_nc_norm or base_nc_norm in anuncio_nc_norm)
+    elif not base_nc_norm:
+        nome_comercial_confere = True
 
     resultado.update({
         "marca_confere_base": "SIM" if marca_confere else "NAO",
         "modelo_confere_base": "SIM" if modelo_confere else "NAO",
+        "nome_comercial_confere_base": "SIM" if nome_comercial_confere else "NAO",
         "requerimento_emitido": (
             "SIM"
             if situacao_requerimento_normalizada == "EMITIDA"
@@ -333,12 +357,15 @@ def analisar_situacao_anatel(
     elif not marca_confere:
         divergencias.append("marca do anúncio diferente da base")
 
-    if not modelo:
-        divergencias.append("modelo não capturado no anúncio")
+    if not modelo_tecnico:
+        divergencias.append("modelo técnico não capturado no anúncio")
     elif not modelo_base:
-        divergencias.append("modelo ausente na base")
+        divergencias.append("modelo técnico ausente na base")
     elif not modelo_confere:
-        divergencias.append("modelo do anúncio diferente da base")
+        divergencias.append("modelo técnico do anúncio diferente da base")
+
+    if nome_comercial and nome_comercial_base and not nome_comercial_confere:
+        divergencias.append("nome comercial do anúncio diferente da base")
 
     if situacao_requerimento_normalizada in {"CANCELADA", "SUSPENSA"}:
         resultado.update({
@@ -377,8 +404,8 @@ def analisar_situacao_anatel(
         "anatel_em_ordem": "SIM",
         "situacao_anatel": "REGULAR",
         "motivo_anatel": (
-            "Homologação Emitida; código, marca/fabricante e modelo "
-            "do anúncio conferem com a base."
+            "Homologação Emitida; código, marca/fabricante, modelo técnico "
+            "e nome comercial do anúncio conferem com a base."
         ),
     })
     return resultado

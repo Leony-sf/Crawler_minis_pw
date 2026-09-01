@@ -218,9 +218,6 @@ def _contexto_valido(contexto: str) -> bool:
 
 
 def _inferir_unidade_sem_rotulo(valores: list[float]) -> str:
-    # Dimensões como "115 x 50 x 14" em uma ficha técnica são normalmente
-    # milímetros. A inferência só é aceita quando os valores parecem medidas
-    # físicas de aparelho; casos ambíguos não são convertidos.
     if valores and max(valores) > 30 and max(valores) <= 300:
         return "mm"
     return "cm"
@@ -231,17 +228,6 @@ def _corrigir_escala_dimensional_suspeita(
     valores_brutos: list[float],
     unidades: list[str | None],
 ) -> tuple[list[float], bool]:
-    """Evita aceitar dimensões impossíveis por erro de escala.
-
-    Exemplo protegido:
-        bruto: 11,5 x 5 x 1,3 com unidade lida como mm
-        conversão ingênua: 1,15 x 0,5 x 0,13 cm
-        reavaliação: 11,5 x 5 x 1,3 cm
-
-    Só corrige quando a conversão resultaria em um aparelho com maior
-    dimensão inferior a 4 cm e os valores brutos formam um corpo de
-    telefone plausível em centímetros.
-    """
     if len(valores_convertidos) < 2 or len(valores_brutos) < 2:
         return valores_convertidos, False
 
@@ -356,8 +342,6 @@ def _extrair_multiplicacoes(
             for rotulo in ROTULOS_DIMENSAO
         )
 
-        # Multiplicações no texto descritivo só são aceitas quando aparecem
-        # próximas a um rótulo dimensional.
         if origem == "descricao" and not tem_rotulo:
             continue
 
@@ -713,23 +697,23 @@ def classificar_produto(
     if anatel_em_ordem:
         resultado.classificacao = "DESCARTADO"
         resultado.motivo_classificacao = (
-            "Dimensões dentro do limite, porém o código Anatel, a marca e "
-            "o modelo estão em conformidade com a base."
+            "Dimensões dentro do limite, porém o código Anatel, a marca, "
+            "o modelo técnico e o nome comercial estão em conformidade com a base."
         )
         return resultado.para_dict()
 
-    resultado.classificacao = "IRREGULAR"
-
     if not codigo_anatel:
+        resultado.classificacao = "IRREGULAR"
         resultado.motivo_classificacao = (
             "Dimensões dentro do limite de 12 × 5,5 cm e código Anatel "
             "não localizado no anúncio."
         )
     else:
+        resultado.classificacao = "NAO_CLASSIFICADO"
         resultado.motivo_classificacao = (
-            "Dimensões dentro do limite de 12 × 5,5 cm, mas o código "
-            "Anatel, a marca ou o modelo não ficaram em conformidade "
-            "com a base."
+            "Dimensões dentro do limite de 12 × 5,5 cm, mas há divergências "
+            "com a base Anatel (marca, modelo ou nome comercial) "
+            "que não permitem concluir a regularidade com segurança."
         )
 
     return resultado.para_dict()
