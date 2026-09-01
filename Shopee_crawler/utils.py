@@ -17,9 +17,9 @@ VERBOSE = os.getenv("CRAWLER_VERBOSE", "0").strip() == "1"
 PRODUCT_COLUMNS = [
     "pid", "marketplace_id", "titulo", "link", "url", "codigo_anatel", "marca",
     "preco", "status", "motivo_validacao", "motivo_irregularidade", "warning",
-    "modelo", "modelo_alfanumerico", "modelo_decisivo", "classificacao",
+    "modelo", "modelo_alfanumerico", "modelo_decisivo", "nome_comercial", "classificacao",
     "evidencia_mini", "dimensoes_encontradas", "codigo_confere_base",
-    "marca_confere_base", "modelo_confere_base", "motivo_anatel", "data_hora_captura"
+    "marca_confere_base", "modelo_confere_base", "nome_comercial_confere_base", "motivo_anatel", "data_hora_captura"
 ]
 
 COMMENT_COLUMNS = [
@@ -108,6 +108,7 @@ def criar_pastas_saida(base: str | Path | None = None) -> Path:
     (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "regulares").mkdir(parents=True, exist_ok=True)
+    (saida / "prints" / "nao_classificados").mkdir(parents=True, exist_ok=True)
     return saida
 
 def pasta_print_por_status(pasta_saida: Path, status_validacao: str) -> Path:
@@ -116,6 +117,8 @@ def pasta_print_por_status(pasta_saida: Path, status_validacao: str) -> Path:
         pasta = pasta_saida / "prints" / "regulares"
     elif status in ["SUSPEITO", "SUSPEITO_MANUAL"]:
         pasta = pasta_saida / "prints" / "suspeitos"
+    elif status == "NAO_CLASSIFICADO":
+        pasta = pasta_saida / "prints" / "nao_classificados"
     else:
         pasta = pasta_saida / "prints" / "irregulares"
     pasta.mkdir(parents=True, exist_ok=True)
@@ -137,7 +140,6 @@ def _valor_para_parquet(valor: Any) -> Any:
     return valor
 
 def preparar_dataframe(linhas: list[dict[str, Any]], colunas_base: list[str]) -> pd.DataFrame:
-    # Garante que as chaves 'url' e 'link' sempre tenham o mesmo valor, evitando vazios no parquet
     for linha in linhas:
         link_correto = linha.get("url") or linha.get("link") or ""
         linha["url"] = link_correto

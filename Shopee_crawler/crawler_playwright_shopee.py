@@ -29,10 +29,6 @@ LINK_PRODUTO_SELECTORS = [
     "a[href*='shopee.com.br'][href]",
 ]
 
-# ==============================================================================
-# FUNÇÕES DE AUDITORIA VISUAL DO TERMINAL (Padrão Mercado Livre)
-# ==============================================================================
-
 def _valor_terminal(valor: Any, vazio: str = "NÃO LOCALIZADO") -> str:
     texto = str(valor or "").strip()
     return texto if texto else vazio
@@ -76,16 +72,13 @@ def _log_auditoria_anatel(dados: dict[str, Any], anatel: dict[str, Any]) -> None
     log("anatel", "Código         : anúncio=" + _valor_terminal(dados.get("codigo_anatel_principal")) + " | base=" + _valor_terminal(anatel.get("codigo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("codigo_confere_base")))
     log("anatel", "Situação Req.  : " + _valor_terminal(anatel.get("situacao_requerimento_base"), "NÃO LOCALIZADA") + " | emitida=" + _sim_nao_terminal(anatel.get("requerimento_emitido")))
     log("anatel", "Marca          : anúncio=" + _valor_terminal(dados.get("marca")) + " | base=" + _valor_terminal(anatel.get("fabricante_base")) + " | confere=" + _sim_nao_terminal(anatel.get("marca_confere_base")))
-    log("anatel", "Modelo         : anúncio=" + _valor_terminal(dados.get("modelo")) + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("anatel", "Modelo Técnico : anúncio=" + _valor_terminal(dados.get("modelo")) + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("anatel", "Nome Comercial : anúncio=" + _valor_terminal(dados.get("nome_comercial")) + " | base=" + _valor_terminal(anatel.get("nome_comercial_base")) + " | confere=" + _sim_nao_terminal(anatel.get("nome_comercial_confere_base")))
     log("anatel", "Resultado      : " + _valor_terminal(anatel.get("situacao_anatel"), "NAO_INFORMADO") + " — " + _valor_terminal(anatel.get("motivo_anatel"), "sem motivo"))
 
 def _log_auditoria_classificacao(cls: dict[str, Any]) -> None:
     log("classificação", "Destino        : " + _valor_terminal(cls.get("classificacao"), "NÃO DEFINIDO"))
     log("classificação", "Motivo         : " + _valor_terminal(cls.get("motivo_classificacao"), "sem motivo registrado"))
-
-# ==============================================================================
-# NAVEGAÇÃO E EXTRAÇÃO
-# ==============================================================================
 
 def _pausa(page, segundos: float, motivo: str = "") -> None:
     if motivo: log_debug("pausa", f"{segundos:.1f}s - {motivo}")
@@ -277,9 +270,6 @@ def _clicar_proxima_pagina_busca(page) -> bool:
         except Exception: pass
     return False
 
-# ==============================================================================
-# FUNÇÃO PRINCIPAL REESCRITA COM A LÓGICA E O LOG DE AUDITORIA DO ML
-# ==============================================================================
 def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless: bool = False, max_paginas: int = 3, queries: list[str] = None) -> dict[str, Any]:
     pasta_saida = criar_pastas_saida()
     produtos_resultados = []
@@ -292,6 +282,7 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
     total_descartados = 0
     total_irregulares = 0
     total_suspeitos = 0
+    total_nao_classificados = 0
 
     secao("Busca Shopee")
 
@@ -342,12 +333,16 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
                             dados = extrair_dados_html(html, url=link, texto_extra=texto_visivel)
                             momento = datetime.now()
 
-                            # --- CADEIA DE AUDITORIA VISUAL DO ML ---
                             dim = analisar_dimensoes_produto(dados)
                             _log_auditoria_dimensoes(dim)
 
+                            # Modificado para repassar e validar o Nome Comercial
                             anatel = analisar_situacao_anatel(
-                                dados.get("codigo_anatel_principal", ""), dados.get("marca", ""), dados.get("modelo", ""), base_anatel
+                                dados.get("codigo_anatel_principal", ""), 
+                                dados.get("marca", ""), 
+                                dados.get("modelo", ""), 
+                                dados.get("nome_comercial", ""), 
+                                base_anatel
                             )
                             _log_auditoria_anatel(dados, anatel)
 
@@ -356,35 +351,35 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
                             
                             status_final = cls["classificacao"]
                             
-                            # Se descartado, PULA o salvamento de prints e parquet, igual ao ML!
                             if status_final == "DESCARTADO":
                                 total_descartados += 1
                                 continue
                                 
                             if status_final == "IRREGULAR": total_irregulares += 1
-                            if status_final == "SUSPEITO": total_suspeitos += 1
+                            elif status_final == "SUSPEITO": total_suspeitos += 1
+                            elif status_final == "NAO_CLASSIFICADO": total_nao_classificados += 1
                             
                             comentarios_extraidos = _capturar_comentarios_produto(produto_page, idx, link, dados.get("titulo", ""))
                             log("comentários", f"Capturados: {len(comentarios_extraidos)}")
 
-                            # Prepara linha Parquet
                             linha_prod = {
                                 "pid": gerar_id(link), "marketplace_id": "Shopee",
                                 "titulo": dados.get("titulo", ""), "link": link, "url": link,
                                 "codigo_anatel": anatel.get("codigo_anatel_normalizado", ""),
                                 "codigo_anatel_principal": dados.get("codigo_anatel_principal", ""),
                                 "marca": dados.get("marca", ""), "preco": dados.get("preco", ""),
-                                "status": "Irregular" if status_final == "IRREGULAR" else "Suspeito",
+                                "status": "Irregular" if status_final == "IRREGULAR" else status_final,
                                 "status_validacao": status_final,
                                 "motivo_validacao": cls["motivo_classificacao"],
                                 "classificacao": status_final,
+                                "nome_comercial": dados.get("nome_comercial", ""),
                                 "dimensoes_encontradas": _dimensoes_terminal(dim),
                                 "codigo_confere_base": anatel.get("codigo_confere_base", ""),
+                                "nome_comercial_confere_base": anatel.get("nome_comercial_confere_base", ""),
                                 "motivo_anatel": anatel.get("motivo_anatel", ""),
                             }
                             linha_prod.update(metadados_captura(pasta_saida, momento))
                             
-                            # Tira print do que não foi descartado
                             linha_prod["print_path"] = _salvar_print(produto_page, pasta_saida, idx, status_final)
                             
                             produtos_resultados.append(linha_prod)
@@ -405,6 +400,7 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
         "total_visitados": total_visitados,
         "total_irregulares": total_irregulares,
         "total_suspeitos": total_suspeitos,
+        "total_nao_classificados": total_nao_classificados,
         "total_descartados": total_descartados,
         "total_produtos_no_parquet": len(produtos_resultados)
     }

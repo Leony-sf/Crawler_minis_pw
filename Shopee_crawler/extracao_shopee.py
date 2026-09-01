@@ -8,6 +8,7 @@ from utils import normalizar_texto, normalizar_chave, juntar_textos
 
 LABELS_MARCA = ["marca", "brand"]
 LABELS_MODELO = ["modelo", "modelo alfanumerico", "numero do modelo"]
+LABELS_NOME_COMERCIAL = ["nome comercial", "linha"]
 LABELS_FABRICANTE = ["fabricante", "nome do fabricante"]
 LABELS_ANATEL = ["anatel", "codigo anatel", "homologacao", "numero de homologacao"]
 
@@ -70,12 +71,17 @@ def extrair_dados_html(html: str, url: str = "", texto_extra: str = "") -> dict[
         dig = re.sub(r"\D", "", m)
         if 8 <= len(dig) <= 12: codigos.append(normalizar_codigo_anatel(dig))
         
+    nome_comercial = _buscar_por_labels(pares, LABELS_NOME_COMERCIAL)
+    if not nome_comercial:
+        nome_comercial = titulo # Fallback para checar o Nome Comercial no título da página
+        
     return {
         "url": url,
         "titulo": titulo,
         "preco": preco,
         "marca": _buscar_por_labels(pares, LABELS_MARCA),
         "modelo": _buscar_por_labels(pares, LABELS_MODELO),
+        "nome_comercial": nome_comercial,
         "fabricante": _buscar_por_labels(pares, LABELS_FABRICANTE),
         "codigo_anatel_principal": codigos[0] if codigos else "",
         "texto_relevante_mini": texto_total,
@@ -145,7 +151,7 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
     dim_conf = analise_dimensional.get("dimensoes_confiaveis") == "SIM"
     dentro = analise_dimensional.get("dentro_limite_dimensional") == "SIM"
     anatel_ok = analise_anatel.get("anatel_em_ordem") == "SIM"
-    codigo = analise_anatel.get("codigo_anatel_normalizado", "")
+    sit_anatel = analise_anatel.get("situacao_anatel", "")
     
     res = {
         "classificacao": "DESCARTADO", "motivo_classificacao": "",
@@ -179,8 +185,15 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
         res["motivo_classificacao"] = f"Homologação {status_req.lower()} na base Anatel."
         return res
 
+    # Repasse da classificação para itens que necessitam revisão da Anatel
+    if sit_anatel == "NAO_CLASSIFICADO":
+        res["classificacao"] = "NAO_CLASSIFICADO"
+        res["motivo_classificacao"] = analise_anatel.get("motivo_anatel", "Dados insuficientes para concluir regularidade.")
+        return res
+
     if anatel_ok:
-        res["motivo_classificacao"] = "Dimensões no limite e Anatel em conformidade com a base."
+        res["classificacao"] = "REGULAR"
+        res["motivo_classificacao"] = "Dimensões no limite e Anatel em conformidade estrita com a base."
         return res
 
     res["classificacao"] = "IRREGULAR"
