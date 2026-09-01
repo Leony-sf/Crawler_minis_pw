@@ -224,6 +224,7 @@ async def extrair_produto(page: Page, url_produto: str, card: Dict[str, Any]) ->
 
     marca = _valor_por_rotulos(atributos, ["marca", "fabricante"])
     modelo = _valor_por_rotulos(atributos, ["modelo", "modelo detalhado", "numero do modelo"])
+    nome_comercial = _valor_por_rotulos(atributos, ["nome comercial", "linha", "familia", "nome do produto"])
 
     # Extração de Dimensões
     altura_mm, largura_mm, maior_dim = None, None, None
@@ -259,6 +260,7 @@ async def extrair_produto(page: Page, url_produto: str, card: Dict[str, Any]) ->
     return {
         "titulo": titulo, "url": url_produto, "texto_pagina": body_txt,
         "codigo_anatel": codigo_anatel, "marca": marca, "fabricante": marca, "modelo": modelo,
+        "nome_comercial": nome_comercial,
         "altura_mm": altura_mm, "largura_mm": largura_mm,
         "maior_dimensao_mm": maior_dim, "comentarios": comentarios, "atributos": atributos
     }

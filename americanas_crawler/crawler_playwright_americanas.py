@@ -63,6 +63,7 @@ def _log_auditoria_anatel(produto: dict, anatel: dict) -> None:
     log("ANATEL", "Situação Req.  : " + _valor_terminal(anatel.get("situacao_requerimento_base"), "NÃO LOCALIZADA") + " | emitida=" + _sim_nao_terminal(anatel.get("requerimento_emitido")))
     log("ANATEL", "Marca          : anúncio=" + _valor_terminal(produto.get("marca")) + " | base=" + _valor_terminal(anatel.get("fabricante_base")) + " | confere=" + _sim_nao_terminal(anatel.get("marca_confere_base")))
     log("ANATEL", "Modelo         : anúncio=" + _valor_terminal(produto.get("modelo")) + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("ANATEL", "Nome Comercial : anúncio=" + _valor_terminal(produto.get("nome_comercial")) + " | base=" + _valor_terminal(anatel.get("nome_comercial_base")) + " | confere=" + _sim_nao_terminal(anatel.get("nome_comercial_confere_base")))
     log("ANATEL", "Resultado      : " + _valor_terminal(anatel.get("situacao_anatel"), "NAO_INFORMADO") + " — " + _valor_terminal(anatel.get("motivo_anatel"), "sem motivo"))
 
 
@@ -161,12 +162,15 @@ async def _processar_produto(contexto: BrowserContext, url_produto: str, card: D
         comentarios_ext = produto.get("comentarios", [])
         log("COMENTÁRIOS", f"Capturados: {len(comentarios_ext)}")
 
+        # Passando o nome comercial na chamada da função conforme o PDF exige separação 
         anatel = analisar_situacao_anatel(
             produto.get("codigo_anatel", ""),
             produto.get("marca", ""),
             produto.get("modelo", ""),
+            produto.get("nome_comercial", ""), 
             config.base_anatel
         )
+        
         classificacao = classificar_produto(produto, anatel)
 
         _log_auditoria_dimensoes(produto, classificacao)
@@ -184,8 +188,14 @@ async def _processar_produto(contexto: BrowserContext, url_produto: str, card: D
         motivos_str = "; ".join(classificacao.motivos) if classificacao.motivos else "sem motivo"
         log("CLASSIFICAÇÃO", f"Motivo         : {motivos_str}")
 
-        if classificacao.status in ["IRREGULAR", "SUSPEITO"]:
-            cat = "irregulares" if classificacao.status == "IRREGULAR" else "suspeitos"
+        if classificacao.status in ["IRREGULAR", "SUSPEITO", "NÃO CLASSIFICADO"]:
+            if classificacao.status == "IRREGULAR":
+                cat = "irregulares"
+            elif classificacao.status == "SUSPEITO":
+                cat = "suspeitos"
+            else:
+                cat = "nao_classificados"
+                
             registro["print_comprovante"] = await _tirar_print_produto(page, config.saida, registro, cat)
 
         return registro, comentarios_ext

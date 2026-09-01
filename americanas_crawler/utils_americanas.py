@@ -64,6 +64,7 @@ def criar_pastas_saida(base: str | Path | None = None) -> Path:
     saida = saida.resolve()
     (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
+    (saida / "prints" / "nao_classificados").mkdir(parents=True, exist_ok=True)
     return saida
 
 def escrever_resumo_txt(saida: Path, linhas: List[str]) -> None:

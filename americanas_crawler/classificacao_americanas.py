@@ -55,7 +55,8 @@ def classificar_produto(produto: Dict[str, Any], anatel: Dict[str, Any]) -> Clas
         eh_mini = True
 
     if not eh_mini:
-        if maior_dimensao_mm is None: return Classificacao(status="SUSPEITO", motivos=["Aparelho celular sem medidas físicas capturadas"])
+        if maior_dimensao_mm is None: 
+            return Classificacao(status="NÃO CLASSIFICADO", motivos=["Aparelho celular sem medidas físicas capturadas"])
         return Classificacao(status="DESCARTADO", motivos=[f"Excede o limite dimensional. Maior dimensão: {maior_dimensao_mm}mm"])
 
     status_anatel = anatel.get("situacao_requerimento_normalizada", "NAO_INFORMADA")
@@ -65,5 +66,8 @@ def classificar_produto(produto: Dict[str, Any], anatel: Dict[str, Any]) -> Clas
         return Classificacao(status="IRREGULAR", motivos=["Homologação suspensa/cancelada"], altura_mm=altura_mm, largura_mm=largura_mm)
     elif em_ordem == "SIM":
         return Classificacao(status="DESCARTADO", motivos=["Legalizado com base Anatel"], altura_mm=altura_mm, largura_mm=largura_mm)
-    else:
+    elif em_ordem == "NAO":
         return Classificacao(status="IRREGULAR", motivos=["Anatel ausente ou divergente com a base"], altura_mm=altura_mm, largura_mm=largura_mm)
+    else:
+        # Categoria adicionada conforme evolução solicitada
+        return Classificacao(status="NÃO CLASSIFICADO", motivos=["Informações insuficientes para concluir a regularidade com segurança"], altura_mm=altura_mm, largura_mm=largura_mm)
