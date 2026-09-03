@@ -1,7 +1,2 @@
-celular
-telefone
-iphone
-android
-galaxy
-xiomi
-huawei
+bm10
+mini celular

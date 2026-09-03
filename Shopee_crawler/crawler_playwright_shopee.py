@@ -270,7 +270,7 @@ def _clicar_proxima_pagina_busca(page) -> bool:
         except Exception: pass
     return False
 
-def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless: bool = False, max_paginas: int = 3, queries: list[str] = None) -> dict[str, Any]:
+def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless: bool = False, max_paginas: int = 3, queries: list[str] = None, esperar_login: bool = False) -> dict[str, Any]:
     pasta_saida = criar_pastas_saida()
     produtos_resultados = []
     comentarios_resultados = []
@@ -290,6 +290,18 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
         context = _abrir_contexto_chrome_persistente(p, headless=headless)
         page = context.pages[0] if context.pages else context.new_page()
 
+        if esperar_login:
+            log("login", "Abrindo a página inicial da Shopee para ajustes manuais...")
+            try:
+                page.goto("https://shopee.com.br", timeout=60000)
+            except Exception: pass
+            
+            print("\n" + "=" * 70)
+            print("PAUSA INICIAL - PREPARAÇÃO DO AMBIENTE")
+            print("=" * 70)
+            input("Faça o login, feche pop-ups, aceite os cookies e pressione ENTER aqui no terminal para iniciar o crawler... ")
+            _salvar_estado_sessao_debug(page)
+
         try:
             for termo_busca in queries_execucao:
                 if total_visitados >= limite: break
@@ -299,7 +311,12 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
                     if total_visitados >= limite: break
 
                     if pagina_atual == 1:
-                        page.goto(url_busca, timeout=60000); _pausa(page, 6)
+                        # Adicionado try...except para engolir o erro se a Shopee redirecionar pro /verify/traffic
+                        try:
+                            page.goto(url_busca, wait_until="domcontentloaded", timeout=60000)
+                        except Exception:
+                            pass
+                        _pausa(page, 6)
                     else:
                         if not _clicar_proxima_pagina_busca(page): break
                     
@@ -323,8 +340,16 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
 
                         produto_page = context.new_page()
                         try:
-                            produto_page.goto(link, timeout=60000)
+                            # Adicionado try...except também na navegação individual de cada produto
+                            try:
+                                produto_page.goto(link, wait_until="domcontentloaded", timeout=60000)
+                            except Exception:
+                                pass
+                                
                             _pausa(produto_page, 4)
+                            
+                            # Se redirecionou pra captcha aqui também, a função abaixo lida com isso
+                            _garantir_sessao_shopee(produto_page, link)
                             _fechar_popups_se_existir(produto_page)
 
                             texto_visivel = _rolar_para_detalhes_produto(produto_page)
@@ -336,7 +361,6 @@ def rodar_playwright_shopee(query: str, limite: int, base_anatel=None, headless:
                             dim = analisar_dimensoes_produto(dados)
                             _log_auditoria_dimensoes(dim)
 
-                            # Modificado para repassar e validar o Nome Comercial
                             anatel = analisar_situacao_anatel(
                                 dados.get("codigo_anatel_principal", ""), 
                                 dados.get("marca", ""), 

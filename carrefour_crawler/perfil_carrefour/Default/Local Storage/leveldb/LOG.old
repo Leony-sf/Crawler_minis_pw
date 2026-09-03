@@ -1,3 +1,6 @@
-2026/08/20-09:26:52.054 4210 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Local Storage\leveldb/MANIFEST-000001
-2026/08/20-09:26:52.069 4210 Recovering log #4
-2026/08/20-09:26:52.084 4210 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Local Storage\leveldb/000004.log 
+2026/08/25-14:01:49.488 6b04 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Local Storage\leveldb/MANIFEST-000001
+2026/08/25-14:01:49.515 6b04 Recovering log #4
+2026/08/25-14:01:49.530 6b04 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Local Storage\leveldb/000004.log 
+2026/08/25-14:14:49.936 5f98 Level-0 table #8: started
+2026/08/25-14:14:49.951 5f98 Level-0 table #8: 10068 bytes OK
+2026/08/25-14:14:49.955 5f98 Delete type=0 #4

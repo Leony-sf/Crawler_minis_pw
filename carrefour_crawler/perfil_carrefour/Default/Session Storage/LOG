@@ -1,30 +1,44 @@
-2026/08/25-14:01:49.501 5f98 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/MANIFEST-000001
-2026/08/25-14:01:49.522 5f98 Recovering log #15
-2026/08/25-14:01:49.538 5f98 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/000015.log 
-2026/08/25-14:03:29.558 5f98 Level-0 table #20: started
-2026/08/25-14:03:29.579 5f98 Level-0 table #20: 18666 bytes OK
-2026/08/25-14:03:29.583 5f98 Delete type=0 #15
-2026/08/25-14:06:57.422 6b04 Level-0 table #22: started
-2026/08/25-14:06:57.526 6b04 Level-0 table #22: 18735 bytes OK
-2026/08/25-14:06:57.528 6b04 Delete type=0 #19
-2026/08/25-14:09:19.225 5f98 Level-0 table #24: started
-2026/08/25-14:09:19.311 5f98 Level-0 table #24: 17707 bytes OK
-2026/08/25-14:09:19.313 5f98 Delete type=0 #21
-2026/08/25-14:11:33.465 5f98 Level-0 table #26: started
-2026/08/25-14:11:33.486 5f98 Level-0 table #26: 18051 bytes OK
-2026/08/25-14:11:33.490 5f98 Delete type=0 #23
-2026/08/25-14:11:33.495 5f98 Compacting 4@0 + 1@1 files
-2026/08/25-14:11:33.527 5f98 Generated table #27@0: 2985 keys, 51861 bytes
-2026/08/25-14:11:33.527 5f98 Compacted 4@0 + 1@1 files => 51861 bytes
-2026/08/25-14:11:33.528 5f98 compacted to: files[ 0 1 1 0 0 0 0 ]
-2026/08/25-14:11:33.529 5f98 Delete type=2 #17
-2026/08/25-14:11:33.530 5f98 Delete type=2 #20
-2026/08/25-14:11:33.530 5f98 Delete type=2 #22
-2026/08/25-14:11:33.530 5f98 Delete type=2 #24
-2026/08/25-14:11:33.530 5f98 Delete type=2 #26
-2026/08/25-14:14:18.440 5f98 Level-0 table #29: started
-2026/08/25-14:14:18.465 5f98 Level-0 table #29: 16830 bytes OK
-2026/08/25-14:14:18.467 5f98 Delete type=0 #25
-2026/08/25-14:16:41.279 5f98 Level-0 table #31: started
-2026/08/25-14:16:41.303 5f98 Level-0 table #31: 18040 bytes OK
-2026/08/25-14:16:41.306 5f98 Delete type=0 #28
+2026/09/02-15:54:00.982 87a4 Reusing MANIFEST C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/MANIFEST-000001
+2026/09/02-15:54:01.002 87a4 Recovering log #30
+2026/09/02-15:54:01.010 87a4 Reusing old log C:\Users\victorcn.estagio\Documents\crawler_leony\Crawler_pw\carrefour_crawler\perfil_carrefour\Default\Session Storage/000030.log 
+2026/09/02-15:54:33.199 87a4 Level-0 table #34: started
+2026/09/02-15:54:33.223 87a4 Level-0 table #34: 16075 bytes OK
+2026/09/02-15:54:33.231 87a4 Delete type=0 #30
+2026/09/02-15:57:53.812 87a4 Level-0 table #36: started
+2026/09/02-15:57:53.948 87a4 Level-0 table #36: 18763 bytes OK
+2026/09/02-15:57:53.955 87a4 Delete type=0 #33
+2026/09/02-15:57:53.960 87a4 Compacting 4@0 + 1@1 files
+2026/09/02-15:57:53.997 87a4 Generated table #37@0: 4067 keys, 59603 bytes
+2026/09/02-15:57:53.997 87a4 Compacted 4@0 + 1@1 files => 59603 bytes
+2026/09/02-15:57:54.003 87a4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/02-15:57:54.004 87a4 Delete type=2 #27
+2026/09/02-15:57:54.004 87a4 Delete type=2 #29
+2026/09/02-15:57:54.004 87a4 Delete type=2 #31
+2026/09/02-15:57:54.004 87a4 Delete type=2 #34
+2026/09/02-15:57:54.005 87a4 Delete type=2 #36
+2026/09/02-16:00:25.169 87a4 Level-0 table #39: started
+2026/09/02-16:00:25.199 87a4 Level-0 table #39: 17840 bytes OK
+2026/09/02-16:00:25.206 87a4 Delete type=0 #35
+2026/09/02-16:02:50.128 87a4 Level-0 table #41: started
+2026/09/02-16:02:50.154 87a4 Level-0 table #41: 17580 bytes OK
+2026/09/02-16:02:50.161 87a4 Delete type=0 #38
+2026/09/02-16:05:28.704 87a4 Level-0 table #43: started
+2026/09/02-16:05:28.735 87a4 Level-0 table #43: 17238 bytes OK
+2026/09/02-16:05:28.747 87a4 Delete type=0 #40
+2026/09/02-16:08:11.387 87a4 Level-0 table #45: started
+2026/09/02-16:08:11.412 87a4 Level-0 table #45: 16946 bytes OK
+2026/09/02-16:08:11.419 87a4 Delete type=0 #42
+2026/09/02-16:08:11.425 87a4 Compacting 4@0 + 1@1 files
+2026/09/02-16:08:11.445 87a4 Generated table #46@0: 5168 keys, 74710 bytes
+2026/09/02-16:08:11.445 87a4 Compacted 4@0 + 1@1 files => 74710 bytes
+2026/09/02-16:08:11.454 87a4 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/09/02-16:08:11.455 87a4 Delete type=2 #37
+2026/09/02-16:08:11.456 87a4 Delete type=2 #39
+2026/09/02-16:08:11.456 87a4 Delete type=2 #41
+2026/09/02-16:08:11.456 87a4 Delete type=2 #43
+2026/09/02-16:08:11.456 87a4 Delete type=2 #45
+2026/09/02-16:10:34.812 87a4 Level-0 table #48: started
+2026/09/02-16:10:34.909 87a4 Level-0 table #48: 18369 bytes OK
+2026/09/02-16:10:34.917 87a4 Delete type=0 #44
+2026/09/02-16:11:58.669 87a4 Level-0 table #50: started
+2026/09/02-16:11:58.700 87a4 Level-0 table #50: 14769 bytes OK

@@ -72,7 +72,8 @@ def _log_auditoria_anatel(dados: DadosProduto, anatel: dict[str, Any], modelo_an
     log("anatel", "Código         : anúncio=" + _valor_terminal(dados.codigo_anatel_principal) + " | base=" + _valor_terminal(anatel.get("codigo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("codigo_confere_base")))
     log("anatel", "Situação Req.  : " + _valor_terminal(anatel.get("situacao_requerimento_base"), "NÃO LOCALIZADA") + " | emitida=" + _sim_nao_terminal(anatel.get("requerimento_emitido")))
     log("anatel", "Marca          : anúncio=" + _valor_terminal(dados.marca) + " | base=" + _valor_terminal(anatel.get("fabricante_base")) + " | confere=" + _sim_nao_terminal(anatel.get("marca_confere_base")))
-    log("anatel", "Modelo         : anúncio=" + _valor_terminal(modelo_anuncio) + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("anatel", "Modelo Técnico : anúncio=" + _valor_terminal(modelo_anuncio) + " | base=" + _valor_terminal(anatel.get("modelo_base")) + " | confere=" + _sim_nao_terminal(anatel.get("modelo_confere_base")))
+    log("anatel", "Nome Comercial : anúncio=" + _valor_terminal(dados.titulo[:20]) + " | base=" + _valor_terminal(anatel.get("nome_comercial_base")) + " | confere=" + _sim_nao_terminal(anatel.get("nome_comercial_confere_base")))
     log("anatel", "Resultado      : " + _valor_terminal(anatel.get("situacao_anatel"), "NAO_INFORMADO") + " — " + _valor_terminal(anatel.get("motivo_anatel"), "sem motivo"))
 
 def _log_auditoria_classificacao(linha: dict[str, Any]) -> None:
@@ -383,7 +384,7 @@ def rodar_playwright_amazon(
                             }
 
                             label_anatel, modelo_anatel = _modelo_decisivo_capturado(dados)
-                            anatel = analisar_situacao_anatel(dados.codigo_anatel_principal, dados.marca, modelo_anatel, base_anatel)
+                            anatel = analisar_situacao_anatel(dados.codigo_anatel_principal, dados.marca, modelo_anatel, dados.titulo, base_anatel)
 
                             classificacao = classificar_produto(dados, analise_dimensional, anatel)
                             classificacao_final = classificacao.get("classificacao", "DESCARTADO")
@@ -405,6 +406,15 @@ def rodar_playwright_amazon(
                                 "dimensoes_encontradas": f"{mini_info.get('mini_maior_cm', 'N/A')} x {mini_info.get('mini_largura_cm', 'N/A')} cm" if mini_info.get('mini_maior_cm') else "NAO ENCONTRADAS",
                             }
                             linha.update(metadados_captura(pasta_saida, momento))
+
+                            # Salva print para os NÃO CLASSIFICADOS
+                            if classificacao_final == "NÃO CLASSIFICADO":
+                                arquivo_nc = pasta_saida / "prints" / "nao_classificados" / f"{linha['pid']}_nc.png"
+                                try:
+                                    prod_page.screenshot(path=str(arquivo_nc), full_page=True)
+                                    linha["print_path"] = str(arquivo_nc)
+                                except Exception:
+                                    pass
 
                             # Auditoria no Terminal 
                             _log_auditoria_dimensoes(analise_dimensional)
