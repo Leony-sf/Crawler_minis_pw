@@ -17,7 +17,7 @@ from playwright.async_api import async_playwright
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'ML_crawler')))
 
 from base_anatel import BaseAnatel, analisar_situacao_anatel
-from classificacao_ml import analisar_dimensoes_produto, classificar_produto
+from classificacao_aliexpress import analisar_dimensoes_produto, classificar_produto
 from utils_aliexpress import (
     criar_pastas_saida,
     metadados_captura,
@@ -253,37 +253,76 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
     
-    await page.mouse.wheel(0, 800)
+    # 1. Rolar suavemente várias vezes para garantir o carregamento da seção (Lazy Load)
+    for _ in range(3):
+        await page.mouse.wheel(0, 800)
+        await page.wait_for_timeout(1000)
+
+    # 2. Clicar na aba "Detalhes" forçadamente via JS
+    await page.evaluate("""
+        () => {
+            const abas = document.querySelectorAll('div, span, a, button, li');
+            for (const aba of abas) {
+                const txt = (aba.innerText || '').trim().toLowerCase();
+                if (txt === 'detalhes' || txt === 'specifications' || txt === 'especificações') {
+                    aba.click();
+                }
+            }
+        }
+    """)
     await page.wait_for_timeout(2000)
 
-    for aba_texto in ["Detalhes", "Specifications", "Especificações"]:
-        try:
-            aba = page.get_by_text(aba_texto, exact=True).first
-            if await aba.count() > 0:
-                await aba.scroll_into_view_if_needed()
-                await page.wait_for_timeout(500)
-                await aba.click(timeout=3000)
-                await page.wait_for_timeout(2000)
-                break
-        except Exception:
-            pass
-
-    await page.mouse.wheel(0, 600)
+    # Rolar mais um pouco para centralizar a tabela
+    await page.mouse.wheel(0, 800)
     await page.wait_for_timeout(1000)
 
-    for btn_texto in ["Ver mais", "View More", "Show more", "Mais"]:
+    # 3. FORÇA BRUTA: Clicar no botão "Ver mais"
+    # Etapa A: Usar o Playwright com force=True
+    textos_alvo = ["Ver mais", "View More", "Show more", "Mais", "Mostrar mais"]
+    for texto in textos_alvo:
         try:
-            btn = page.get_by_text(btn_texto, exact=False).last 
-            if await btn.count() > 0:
-                await btn.scroll_into_view_if_needed()
-                await page.wait_for_timeout(500)
-                await btn.click(timeout=3000)
-                await page.wait_for_timeout(2000)
-                break
+            botoes = page.get_by_text(texto, exact=True)
+            count = await botoes.count()
+            for i in range(count):
+                btn = botoes.nth(i)
+                if await btn.is_visible():
+                    await btn.scroll_into_view_if_needed()
+                    await page.wait_for_timeout(500)
+                    await btn.click(force=True, timeout=2000) 
+                    await page.wait_for_timeout(1000)
         except Exception:
             pass
 
-    await rolar_pagina(page, passos=2, pausa=0.5)
+    # Etapa B: Varredura JS para interceptar qualquer texto "Ver mais" desgarrado no HTML
+    await page.evaluate("""
+        () => {
+            const keywords = ['ver mais', 'view more', 'show more'];
+            const tags = ['button', 'a', 'span', 'div'];
+            
+            for (const tag of tags) {
+                const elementos = document.querySelectorAll(tag);
+                for (const el of elementos) {
+                    const txt = Array.from(el.childNodes)
+                        .filter(node => node.nodeType === 3)
+                        .map(node => node.textContent.trim().toLowerCase())
+                        .join('');
+                        
+                    if (keywords.includes(txt)) {
+                        el.click();
+                        if (el.parentElement) el.parentElement.click();
+                    }
+                }
+            }
+            // Força clique em classes típicas desse botão no Ali
+            const btnClasses = document.querySelectorAll('[class*="spec-more"], [class*="show-more"]');
+            for(let b of btnClasses) b.click();
+        }
+    """)
+    await page.wait_for_timeout(2500) # Pausa estendida para a tabela carregar visualmente
+
+    # Uma última rolada para garantir que toda a tabela expandida subiu no DOM
+    await page.mouse.wheel(0, 600)
+    await page.wait_for_timeout(1500)
 
     titulo = await _texto_primeiro(page, ["h1", "[data-pl='product-title'], .product-title"])
     if not titulo:
@@ -300,36 +339,44 @@ async def _capturar_detalhes_produto(page) -> Dict[str, Any]:
     except Exception:
         pass
 
+    # 4. EXTRAÇÃO CORRIGIDA: Lendo tabelas com 4 ou mais colunas (O pulo do gato das imagens)
     atributos = await page.evaluate(
         """
         () => {
             const out = {};
-            const els = document.querySelectorAll('li, tr, div.specification, div[class*="spec-item"], div[class*="prop-item"], .product-specs li, .product-prop');
+            const els = document.querySelectorAll('li, tr, div.specification, div[class*="spec-item"], div[class*="prop-item"], .product-specs li, .product-prop, div[class*="base-attr"]');
             for (const el of els) {
-                if (el.tagName === 'TR') {
-                    const tds = el.querySelectorAll('td, th');
+                
+                // Lê tabelas de 2 em 2 colunas para resolver o problema de múltiplas colunas na mesma linha
+                if (el.tagName === 'TR' || el.tagName === 'DIV') {
+                    const tds = el.querySelectorAll('td, th, .prop-name, .prop-value, .title, .desc');
                     if (tds.length >= 2) {
-                        const key = tds[0].innerText.trim();
-                        const val = tds[1].innerText.trim();
-                        if (key && val && key.length < 60) out[key] = val;
-                    }
-                    continue;
-                }
-                const spans = el.querySelectorAll('span');
-                if (spans.length >= 2) {
-                    const key = spans[0].innerText.trim();
-                    const val = spans[1].innerText.trim();
-                    if (key && val && key.length < 60 && val.length < 150) {
-                        out[key] = val;
+                        for (let i = 0; i < tds.length - 1; i += 2) {
+                            const key = tds[i].innerText.trim();
+                            const val = tds[i+1].innerText.trim();
+                            if (key && val && key.length < 80) out[key] = val;
+                        }
                         continue;
                     }
                 }
+                // Fallback para spans 
+                const spans = el.querySelectorAll('span');
+                if (spans.length >= 2) {
+                    for (let i = 0; i < spans.length - 1; i += 2) {
+                        const key = spans[i].innerText.trim();
+                        const val = spans[i+1].innerText.trim();
+                        if (key && val && key.length < 80 && val.length < 150) out[key] = val;
+                    }
+                    continue;
+                }
+                
+                // Fallback para texto solto (ex: "Marca: Nokia")
                 const txt = el.innerText || '';
                 const parts = txt.split(/[:：]/);
                 if (parts.length >= 2) {
                     const key = parts[0].trim();
                     const val = parts.slice(1).join(':').trim();
-                    if (key && val && key.length < 60 && val.length < 150) out[key] = val;
+                    if (key && val && key.length < 80 && val.length < 150) out[key] = val;
                 }
             }
             return out;
