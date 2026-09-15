@@ -233,6 +233,7 @@ async def _processar_produto(
             produto.get("codigo_anatel_principal", ""),
             produto.get("marca", ""),
             produto.get("modelo", ""),
+            produto.get("titulo", ""),
             config.base_anatel
         )
         
@@ -254,6 +255,8 @@ async def _processar_produto(
             status_legado = "Irregular"
         elif classificacao_final == "SUSPEITO":
             status_legado = "Suspeito"
+        elif classificacao_final == "NAO_CLASSIFICADO":
+            status_legado = "Não Classificado"
         else:
             status_legado = "Descartado"
 
@@ -289,7 +292,7 @@ async def _processar_produto(
             "status_validacao": classificacao_final,
             "irregularity_reasons": motivo_final if classificacao_final == "IRREGULAR" else "",
             "motivo_validacao": motivo_final,
-            "warnings": motivo_final if classificacao_final == "SUSPEITO" else anatel.get("motivo_anatel", ""),
+            "warnings": motivo_final if classificacao_final in ("SUSPEITO", "NAO_CLASSIFICADO") else anatel.get("motivo_anatel", ""),
             "created_at": datetime.now().strftime("%Y-%m-%d"),
             "modelo": produto.get("modelo", ""),
             "modelo_detalhado": "",
@@ -310,7 +313,7 @@ async def _processar_produto(
             "print_path": "",
             "codigo_anatel": anatel.get("codigo_anatel_normalizado") or produto.get("codigo_anatel_principal", ""),
             "motivo_irregularidade": motivo_final if classificacao_final == "IRREGULAR" else "",
-            "warning": motivo_final if classificacao_final == "SUSPEITO" else "",
+            "warning": motivo_final if classificacao_final in ("SUSPEITO", "NAO_CLASSIFICADO") else "",
             "dimensoes_encontradas": dimensoes_fmt,
             "classificacao": classificacao_final,
             "evidencia_mini": "; ".join(classificacao.evidencias),
@@ -371,10 +374,11 @@ def _imprimir_final(
 ) -> None:
     qtd_irregulares = sum(1 for r in resultados if r.get("classificacao") == "IRREGULAR")
     qtd_suspeitos = sum(1 for r in resultados if r.get("classificacao") == "SUSPEITO")
+    qtd_nao_classif = sum(1 for r in resultados if r.get("classificacao") == "NAO_CLASSIFICADO")
 
     secao("FINALIZADO")
     log("resumo", f"Analisados: {total_analisados}/{config.limit} | Salvos: {len(resultados)}")
-    log("resumo", f"Irregulares: {qtd_irregulares} | Suspeitos: {qtd_suspeitos}")
+    log("resumo", f"Irregulares: {qtd_irregulares} | Suspeitos: {qtd_suspeitos} | Não Classif.: {qtd_nao_classif}")
     log("resumo", f"Descartados não salvos: {total_descartados if not config.salvar_descartados else 0} | Erros: {total_erros}")
     log("resumo", f"Saída: {config.saida.resolve()}")
 

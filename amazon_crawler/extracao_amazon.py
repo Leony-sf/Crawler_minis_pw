@@ -99,11 +99,9 @@ def preparar_detalhes_produto_amazon(page: Page) -> bool:
                 continue
         return False
 
-    if existe_evidencia():
-        return True
-
+    # 1. Rolar a tela até a área das especificações
     try:
-        for alvo in ["Informações do produto", "Informacoes do produto", "Especificações do produto", "Especificacoes do produto"]:
+        for alvo in ["Especificações do produto", "Especificacoes do produto", "Informações do produto", "Informacoes do produto"]:
             try:
                 loc = page.get_by_text(alvo, exact=False).first
                 if loc.count():
@@ -115,10 +113,14 @@ def preparar_detalhes_produto_amazon(page: Page) -> bool:
     except Exception:
         pass
 
+    # 2. Clicar em todos os botões de expansão (acordeões) visíveis simultaneamente
     textos_acordeao = [
-        "Detalhes do Produto", "Detalhes do produto", "Detalhes Adicionais", 
-        "Detalhes adicionais", "Informações do produto", "Informacoes do produto",
+        "Medidas", "Detalhes do Produto", "Detalhes do produto", 
+        "Detalhes Adicionais", "Detalhes adicionais", 
+        "Bateria", "Tela", "Conectividade", "Navegação",
+        "Informações do produto", "Informacoes do produto"
     ]
+    
     for texto in textos_acordeao:
         seletores = [
             f"button:has-text('{texto}')", f"[role='button']:has-text('{texto}')",
@@ -128,19 +130,26 @@ def preparar_detalhes_produto_amazon(page: Page) -> bool:
             try:
                 loc = page.locator(seletor).first
                 if loc.count() and loc.is_visible(timeout=700):
+                    # Se tiver a propriedade aria-expanded e já for true, não clica de novo para não fechar
+                    if str(loc.get_attribute("aria-expanded")).lower() == "true":
+                        break
+                        
                     loc.scroll_into_view_if_needed(timeout=2500)
                     page.wait_for_timeout(300)
-                    try: loc.click(timeout=1200)
-                    except Exception: pass
-                    page.wait_for_timeout(700)
-                    if existe_evidencia():
-                        return True
+                    try: 
+                        loc.click(timeout=1200)
+                    except Exception: 
+                        pass
+                    page.wait_for_timeout(600)
+                    break
             except Exception:
                 continue
 
+    # 3. Só depois de expandir tudo, verificamos se há evidências
     if existe_evidencia():
         return True
 
+    # Fallback
     try:
         texto = normalizar_texto(page.locator("body").inner_text(timeout=2500))
         termos_fortes = [
@@ -197,6 +206,11 @@ def _coletar_atributos_amazon(page: Page) -> tuple[dict[str, str], dict[str, dic
       for (const row of document.querySelectorAll('#prodDetails div, #detailBullets_feature_div div, #productFactsDesktop_feature_div div')) {
         const children = Array.from(row.children).map(c => clean(c.innerText || c.textContent)).filter(Boolean);
         if (children.length === 2) push(children[0], children[1], 'visual-row', 'media');
+      }
+      
+      for (const row of document.querySelectorAll('div.a-row.a-spacing-small, dl.a-spacing-small')) {
+        const children = Array.from(row.children).map(c => clean(c.innerText || c.textContent)).filter(Boolean);
+        if (children.length === 2) push(children[0], children[1], 'div-grid', 'media');
       }
 
       return out.slice(0, 500);
@@ -593,7 +607,10 @@ def _numero_ptbr_float_amazon(valor: object) -> float | None:
 def _converter_medida_cm_amazon(valor: object, unidade: str | None) -> float | None:
     numero = _numero_ptbr_float_amazon(valor)
     if numero is None: return None
-    if remover_acentos(unidade or "cm") == "mm": return numero / 10.0
+    uni = remover_acentos(unidade or "cm").lower().strip()
+    # Se a unidade for mm ou milímetro escrito por extenso, divide por 10 para converter em cm
+    if uni.startswith("mm") or uni.startswith("milimetro"):
+        return numero / 10.0
     return numero
 
 def _fmt_cm_amazon(valor: float | None) -> str:
@@ -622,11 +639,19 @@ def _texto_identificacao_mini_amazon(dados: DadosProduto, attrs: dict[str, str])
 def _texto_dimensoes_mini_amazon(dados: DadosProduto, attrs: dict[str, str]) -> str:
     partes = [dados.titulo]
     for chave, valor in attrs.items():
-        if any(t in normalizar_chave(chave) for t in ["dimens", "tamanho", "altura", "largura", "comprimento", "profundidade", "espessura", "medida", "produto", "tela"]):
+        chave_norm = normalizar_chave(chave)
+        # Ignora dimensões claras de embalagem/caixa para não descartar indevidamente o aparelho
+        if "embalagem" in chave_norm or "pacote" in chave_norm: continue
+        if any(t in chave_norm for t in ["dimens", "tamanho", "altura", "largura", "comprimento", "profundidade", "espessura", "medida", "produto", "tela"]):
             partes.append(f"{chave}: {valor}")
+            
     for chave, valor in attrs.items():
+        chave_norm = normalizar_chave(chave)
+        if "embalagem" in chave_norm or "pacote" in chave_norm: continue
         texto = f"{chave}: {valor}"
-        if re.search(r"\b(?:cm|mm)\b", texto, flags=re.IGNORECASE) and texto not in partes: partes.append(texto)
+        if re.search(r"\b(?:cm|mm|cent[ií]metros?|mil[ií]metros?)\b", texto, flags=re.IGNORECASE) and texto not in partes: 
+            partes.append(texto)
+            
     return normalizar_texto(" | ".join(str(p or "") for p in partes if p))[:7000]
 
 def _score_evidencia_dimensao_amazon(evidencia: object, maior_cm: float, largura_cm: float) -> tuple[int, float, float]:
@@ -635,12 +660,15 @@ def _score_evidencia_dimensao_amazon(evidencia: object, maior_cm: float, largura
     if "dimensoes do produto" in ev or "dimensao do produto" in ev or "product dimensions" in ev: prioridade = 0
     elif any(t in ev for t in ["dimens", "altura", "largura", "comprimento", "profundidade", "espessura", "tamanho do produto"]): prioridade = 1
     elif "tamanho da tela" in ev or "screen size" in ev: prioridade = 2
-    elif any(t in ev for t in [" cm", "mm"]): prioridade = 3
+    elif any(t in ev for t in [" cm", "mm", "centimetro", "milimetro"]): prioridade = 3
     if any(t in ev for t in ["r$", "frete", "cupom", "parcela", "amazon", "produtos relacionados"]): prioridade += 2
     return (prioridade, float(maior_cm), float(largura_cm))
 
 def _extrair_dimensao_multiplicacao_amazon(texto: str) -> dict[str, Any] | None:
-    padrao = re.compile(r"(?P<a>\d+(?:[\.,]\d+)?)\s*(?P<ua>cm|mm)?\s*(?:x|×|por)\s*(?P<b>\d+(?:[\.,]\d+)?)\s*(?P<ub>cm|mm)?(?:\s*(?:x|×|por)\s*(?P<c>\d+(?:[\.,]\d+)?)\s*(?P<uc>cm|mm)?)?", flags=re.IGNORECASE)
+    # Captura cm, mm, centimetros, milimetros por extenso
+    unidade_re = r"cm|mm|cent[ií]metros?|mil[ií]metros?"
+    padrao = re.compile(rf"(?P<a>\d+(?:[\.,]\d+)?)\s*(?P<ua>{unidade_re})?\s*(?:x|×|por)\s*(?P<b>\d+(?:[\.,]\d+)?)\s*(?P<ub>{unidade_re})?(?:\s*(?:x|×|por)\s*(?P<c>\d+(?:[\.,]\d+)?)\s*(?P<uc>{unidade_re})?)?", flags=re.IGNORECASE)
+    
     candidatos: list[dict[str, Any]] = []
     for m in padrao.finditer(texto):
         unidades = [m.group("ua"), m.group("ub"), m.group("uc")]
@@ -664,11 +692,13 @@ def _extrair_dimensao_multiplicacao_amazon(texto: str) -> dict[str, Any] | None:
 def _extrair_dimensao_rotulos_amazon(texto: str) -> dict[str, Any] | None:
     rotulos = "altura|comprimento|diâmetro|diametro|largura|profundidade"
     numero = r"\d+(?:[\.,]\d+)?"
+    unidade_re = r"cm|mm|cent[ií]metros?|mil[ií]metros?"
     achados: list[dict[str, Any]] = []
     padroes = [
-        re.compile(rf"(?P<label>{rotulos})\b(?P<gap>[^0-9]{{0,35}})(?P<num>{numero})\s*(?P<unit>cm|mm)?", flags=re.IGNORECASE),
-        re.compile(rf"(?P<num>{numero})\s*(?P<unit>cm|mm)?\s*(?:de\s*)?(?P<label>{rotulos})\b", flags=re.IGNORECASE),
+        re.compile(rf"(?P<label>{rotulos})\b(?P<gap>[^0-9]{{0,35}})(?P<num>{numero})\s*(?P<unit>{unidade_re})?", flags=re.IGNORECASE),
+        re.compile(rf"(?P<num>{numero})\s*(?P<unit>{unidade_re})?\s*(?:de\s*)?(?P<label>{rotulos})\b", flags=re.IGNORECASE),
     ]
+    
     for padrao in padroes:
         for m in padrao.finditer(texto):
             tipo = "maior" if any(t in normalizar_chave(m.group("label")) for t in ["altura", "comprimento", "diametro", "profundidade"]) else ("largura" if "largura" in normalizar_chave(m.group("label")) else "")

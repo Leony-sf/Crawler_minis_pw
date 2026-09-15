@@ -107,5 +107,6 @@ def criar_pastas_saida_magalu(base: str | Path | None = None) -> Path:
 
     (saida / "prints" / "irregulares").mkdir(parents=True, exist_ok=True)
     (saida / "prints" / "suspeitos").mkdir(parents=True, exist_ok=True)
+    (saida / "prints" / "nao_classificados").mkdir(parents=True, exist_ok=True)
 
     return saida

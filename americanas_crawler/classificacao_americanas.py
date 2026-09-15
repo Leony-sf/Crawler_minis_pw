@@ -10,6 +10,14 @@ LIMITE_LARGURA_MM = 55.0
 TERMOS_TELEFONIA = ["dual sim", "dois chips", "celular", "smartphone", "feature phone", "gsm"]
 TERMOS_ACESSORIO = ["capa", "capinha", "película", "carregador", "bateria para", "tela para"]
 
+# Nova lista de bloqueio baseada nos falsos positivos da Americanas
+TERMOS_IGNORADOS = [
+    "chocolate", "biscoito", "oreo", "nestlé", "nestle", "lacta", "elma chips", 
+    "pringles", "salgadinho", "fralda", "huggies", "sabão", "desinfetante", 
+    "lysoform", "limpador", "pato gel", "cafeteira", "colchão", "emma", "wafer", 
+    "snack", "amendoim", "doce", "gift card", "tostitos", "batata", "lays", "brilhante"
+]
+
 @dataclass
 class Classificacao:
     status: str
@@ -37,12 +45,17 @@ def classificar_produto(produto: Dict[str, Any], anatel: Dict[str, Any]) -> Clas
     titulo = str(produto.get("titulo", "")).lower()
     texto = str(produto.get("texto_pagina", "") + " " + titulo).lower()
     
-    # Acessórios são checados SOMENTE no título para evitar falsos positivos
+    # Validações de descarte rápido baseadas no título
     eh_acessorio = any(t in titulo for t in TERMOS_ACESSORIO)
+    eh_ignorado = any(t in titulo for t in TERMOS_IGNORADOS)
     tem_tel = any(t in texto for t in TERMOS_TELEFONIA)
 
-    if eh_acessorio: return Classificacao(status="DESCARTADO", motivos=["Acessório (detectado pelo título)"])
-    if not tem_tel: return Classificacao(status="DESCARTADO", motivos=["Sem indícios de telefonia no texto"])
+    if eh_ignorado: 
+        return Classificacao(status="DESCARTADO", motivos=["Produto ignorado (lista de bloqueio)"])
+    if eh_acessorio: 
+        return Classificacao(status="DESCARTADO", motivos=["Acessório (detectado pelo título)"])
+    if not tem_tel: 
+        return Classificacao(status="DESCARTADO", motivos=["Sem indícios de telefonia no texto"])
 
     altura_mm = produto.get("altura_mm")
     largura_mm = produto.get("largura_mm")
@@ -69,5 +82,4 @@ def classificar_produto(produto: Dict[str, Any], anatel: Dict[str, Any]) -> Clas
     elif em_ordem == "NAO":
         return Classificacao(status="IRREGULAR", motivos=["Anatel ausente ou divergente com a base"], altura_mm=altura_mm, largura_mm=largura_mm)
     else:
-        # Categoria adicionada conforme evolução solicitada
         return Classificacao(status="NÃO CLASSIFICADO", motivos=["Informações insuficientes para concluir a regularidade com segurança"], altura_mm=altura_mm, largura_mm=largura_mm)

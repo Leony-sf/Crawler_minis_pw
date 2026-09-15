@@ -161,7 +161,7 @@ async def _processar_produto(contexto: BrowserContext, url_produto: str, card: D
         
         comentarios_ext = produto.get("comentarios", [])
         log("COMENTÁRIOS", f"Capturados: {len(comentarios_ext)}")
-
+        
         # Passando o nome comercial na chamada da função conforme o PDF exige separação 
         anatel = analisar_situacao_anatel(
             produto.get("codigo_anatel", ""),

@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -8,7 +10,27 @@ from typing import Any
 
 import pandas as pd
 
-from utils import log, normalizar_chave, normalizar_texto
+from utils_americanas import log
+
+def normalizar_texto(valor: Any) -> str:
+    if valor is None:
+        return ""
+    texto = str(valor).replace("\xa0", " ").strip().lower()
+    texto = unicodedata.normalize("NFKD", texto)
+    texto = "".join(
+        caractere
+        for caractere in texto
+        if not unicodedata.combining(caractere)
+    )
+    return re.sub(r"\s+", " ", texto).strip()
+
+
+def normalizar_chave(valor: Any) -> str:
+    return re.sub(
+        r"[^a-z0-9]+",
+        "",
+        normalizar_texto(valor),
+    )
 
 
 def normalizar_codigo_anatel(valor: Any) -> str:
@@ -39,7 +61,6 @@ def normalizar_nome_comercial(texto: str) -> str:
     t = normalizar_texto(texto)
     if not t:
         return ""
-    # Equivalências controladas exigidas
     t = t.replace("pro plus", "pro+")
     t = t.replace("5 g", "5g")
     t = t.replace("4 g", "4g")
@@ -53,6 +74,7 @@ def _ler_csv(caminho: str | Path) -> pd.DataFrame:
 
     ultimo_erro: Exception | None = None
     tentativas = [
+        {"sep": ";", "encoding": "utf-8"},
         {"sep": ";", "encoding": "utf-8-sig"},
         {"sep": ";", "encoding": "latin1"},
         {"sep": ",", "encoding": "utf-8-sig"},
@@ -61,13 +83,15 @@ def _ler_csv(caminho: str | Path) -> pd.DataFrame:
 
     for kwargs in tentativas:
         try:
-            return pd.read_csv(
+            df_temp = pd.read_csv(
                 path,
                 dtype=str,
                 keep_default_na=False,
                 on_bad_lines="skip",
                 **kwargs,
             )
+            if len(df_temp.columns) > 1:
+                return df_temp
         except Exception as exc:
             ultimo_erro = exc
 
@@ -78,13 +102,10 @@ def _achar_coluna_exata(
     df: pd.DataFrame,
     nome_esperado: str,
 ) -> str:
-    """Procura um cabeçalho pelo nome normalizado exato."""
     esperado = normalizar_chave(nome_esperado)
-
     for coluna in df.columns:
         if normalizar_chave(coluna) == esperado:
             return coluna
-
     return ""
 
 
@@ -150,33 +171,32 @@ class BaseAnatel:
         ]
 
 
-def carregar_base_anatel(
-    caminho: str | Path | None,
-) -> BaseAnatel | None:
-    if not caminho:
-        log(
-            "base anatel",
-            "Base não informada; a conformidade Anatel não poderá ser "
-            "confirmada.",
-            nivel="AVISO",
-        )
+def carregar_base_anatel(caminho_csv: str):
+    if not caminho_csv:
         return None
 
-    df = _ler_csv(caminho)
-    if df.empty:
-        raise ValueError("A base Anatel está vazia.")
+    df = _ler_csv(caminho_csv)
+    print(f"[DEBUG ANATEL] CSV carregado com {len(df)} linhas.")
 
-    coluna_codigo = _achar_coluna(df, [
-        ["numero", "homolog"],
-        ["codigo", "anatel"],
-        ["homologacao"],
-        ["homolog"],
-    ])
+    coluna_codigo = _achar_coluna_exata(df, "Número de Homologação")
+    if not coluna_codigo:
+        coluna_codigo = _achar_coluna(df, [
+            ["numero", "homolog"],
+            ["codigo", "anatel"],
+            ["homologacao"],
+            ["homolog"],
+        ])
+    
+    print(f"[DEBUG ANATEL] Coluna de código detectada: '{coluna_codigo}'")
     if not coluna_codigo:
         raise ValueError(
             "Não foi encontrada coluna de homologação. "
             f"Colunas disponíveis: {list(df.columns)}"
         )
+
+    df[coluna_codigo] = df[coluna_codigo].astype(str)
+    df[coluna_codigo] = df[coluna_codigo].str.replace(r'\.0$', '', regex=True)
+    df[coluna_codigo] = df[coluna_codigo].str.replace(r'\D', '', regex=True)
 
     coluna_fabricante = _achar_coluna(df, [
         ["nome", "fabricante"],
@@ -184,7 +204,6 @@ def carregar_base_anatel(
         ["marca"],
     ])
     
-    # As colunas abaixo agora são buscadas pelo nome exato, conforme documentação
     coluna_modelo = _achar_coluna_exata(df, "Modelo")
     coluna_nome_comercial = _achar_coluna_exata(df, "Nome Comercial")
     
@@ -192,10 +211,10 @@ def carregar_base_anatel(
         df,
         "Situação do Requerimento",
     )
+    print(f"[DEBUG ANATEL] Coluna situação requerimento: '{coluna_situacao_requerimento}'")
     if not coluna_situacao_requerimento:
         raise ValueError(
-            "A coluna EXATA 'Situação do Requerimento' não foi encontrada. "
-            "A coluna 'Código de Situação do Requerimento' não será usada."
+            "A coluna EXATA 'Situação do Requerimento' não foi encontrada."
         )
 
     base = df.copy()
@@ -211,6 +230,7 @@ def carregar_base_anatel(
         keep="first",
     )
 
+    print(f"[DEBUG ANATEL] Registros válidos finais na base: {len(base)}")
     log("base anatel", f"Registros válidos carregados: {len(base)}")
     return BaseAnatel(
         dataframe=base,
@@ -220,7 +240,6 @@ def carregar_base_anatel(
         coluna_nome_comercial=coluna_nome_comercial,
         coluna_situacao_requerimento=coluna_situacao_requerimento,
     )
-
 
 
 def _normalizar_situacao_requerimento(valor: Any) -> str:
@@ -245,6 +264,7 @@ def analisar_situacao_anatel(
     base: BaseAnatel | None,
 ) -> dict[str, str]:
     codigo_norm = normalizar_codigo_anatel(codigo)
+    print(f"[DEBUG BUSCA] Código original: '{codigo}' | Normalizado: '{codigo_norm}'")
 
     resultado = {
         "codigo_anatel": str(codigo or ""),
@@ -266,9 +286,11 @@ def analisar_situacao_anatel(
     }
 
     if not codigo_norm:
+        print("[DEBUG BUSCA] Código normalizado vazio, ignorando.")
         return resultado
 
     if base is None:
+        print("[DEBUG BUSCA] Objeto base é None!")
         resultado.update({
             "situacao_anatel": "NAO_VERIFICADO",
             "motivo_anatel": (
@@ -279,6 +301,7 @@ def analisar_situacao_anatel(
         return resultado
 
     encontrados = base.buscar_codigo_exato(codigo_norm)
+    print(f"[DEBUG BUSCA] Encontrados na base para '{codigo_norm}': {len(encontrados)}")
     if encontrados.empty:
         resultado.update({
             "situacao_anatel": "IRREGULAR",

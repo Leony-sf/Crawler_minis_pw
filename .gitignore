@@ -6,21 +6,27 @@ Saidas_mercadolivre_*/
 saidas/
 
 # ==========================================
-# ARQUIVOS DE DADOS E MÍDIA
+# ARQUIVOS DE DADOS, MÍDIA E LOGS
 # ==========================================
 *.parquet
 *.csv
 *.png
 *.xlsx
+*.log
 
 # ==========================================
 # DADOS DE SESSÃO E NAVEGADORES (PLAYWRIGHT)
 # ==========================================
-perfil_chrome_shopee/
-chrome_profiles/
+# O uso do "/**/" garante que o Git vai ignorar essas pastas 
+# não importa em qual nível de pasta elas sejam criadas.
+**/*perfil*/
+**/perfil_*/
+**/chrome_profiles/
+
+# Regras específicas (mantidas por precaução)
 crawler_magalu/perfil_magalu/
 Aliexpress_mini_celulares/perfil_aliexpress/
-*perfil*/
+perfil_chrome_shopee/
 shopee_state_debug.json
 
 # ==========================================
@@ -28,5 +34,14 @@ shopee_state_debug.json
 # ==========================================
 __pycache__/
 *.pyc
+*.pyo
 venv/
 .env
+
+# ==========================================
+# IDEs E ARQUIVOS DO SISTEMA
+# ==========================================
+.vscode/
+.idea/
+.ipynb_checkpoints/
+Desktop.ini

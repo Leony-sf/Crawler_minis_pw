@@ -240,6 +240,10 @@ def criar_pastas_saida(
         parents=True,
         exist_ok=True,
     )
+    (saida / "prints" / "nao_classificados").mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     return saida
 
@@ -359,7 +363,6 @@ def salvar_parquet_incremental(
         pasta_saida / "comments.parquet",
         index=False,
     )
-
 
 
 def juntar_textos(

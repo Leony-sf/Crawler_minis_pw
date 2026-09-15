@@ -27,7 +27,16 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     pasta_saida = criar_pastas_saida(args.saida)
-    base_anatel = carregar_base_anatel(args.base) if args.base else None
+    
+    # Caminho padrão injetado com o 'r' na frente para evitar erros no Windows
+    caminho_base = args.base if args.base else "Produtos_Homologados_Anatel.csv"
+    
+    try:
+        print(f"Carregando base Anatel de: {caminho_base}...")
+        base_anatel = carregar_base_anatel(caminho_base)
+    except Exception as e:
+        print(f"Aviso: Não foi possível carregar a base Anatel ({e}). O bot rodará sem validação da base.")
+        base_anatel = None
 
     config = ConfigAmericanas(
         txt=args.txt,
