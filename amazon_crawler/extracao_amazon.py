@@ -595,7 +595,31 @@ TERMOS_CELULAR_FUNCIONAL_AMAZON = ["celular", "telefone", "smartphone", "phone",
 MARCAS_MODELOS_SUSPEITOS_MINI_AMAZON = ["bm10", "bm20", "bm30", "bm50", "bm70", "bm90", "bm100", "bm200", "bm310", "bt11", "bt22", "b25", "b30", "j8", "j9", "j10", "long-cz", "long cz", "k10", "k33", "k66", "l8star", "l8 star", "gtstar", "gt star", "zanco", "zanco tiny", "servo phone", "servo", "anica", "aizku", "kechaoda", "soyes", "melrose"]
 TERMOS_DISFARCE_MINI_AMAZON = ["batom", "batonzinho", "caneta", "pen phone", "isqueiro", "lighter phone", "chaveiro", "chave de carro", "keyring", "cartão", "cartao", "card phone", "key phone", "bmw", "porsche"]
 TERMOS_TECNICOS_SUSPEITOS_AMAZON = ["chip", "sim", "gsm", "imei", "sms", "chamada", "ligação", "ligacao", "dual sim", "2 chips", "dois chips", "2g", "3g", "4g", "lte", "bluetooth dialer"]
-TERMOS_DESCARTAR_MINI_AMAZON = ["capinha", "capa para", "case para", "pelicula", "película", "carregador", "cabo usb", "cabo tipo c", "fonte", "fone de ouvido", "suporte", "tripé", "tripe", "bateria para", "display para", "tela para", "frontal para", "placa para", "conector para", "flex para", "slot para", "gaveta chip", "adesivo", "miniatura decorativa"]
+TERMOS_DESCARTAR_MINI_AMAZON = [
+    # Capas e Proteção
+    "capinha", "capa para", "capa protetora", "case para", "pelicula", "película", "skin", "bumper",
+    
+    # Energia e Cabos
+    "carregador", "power bank", "bateria externa", "cabo usb", "cabo tipo c", "fonte", "adaptador", 
+    
+    # Suportes e Fotografia
+    "suporte", "tripé", "tripe", "bastão", "bastao", "pau de selfie", "selfie stick", "ventosa", 
+    "gimbal", "estabilizador", "ring light", "anel de luz", "lupa", "ampliador de tela", "pop socket", "dock", "pedestal",
+    
+    # Áudio e Dispositivos Inteligentes
+    "fone de ouvido", "fone bluetooth", "headset", "earbuds", "caixa de som", "speaker", "alto falante", 
+    "microfone", "smartwatch", "pulseira inteligente", "smartband", "alexa", "echo dot",
+    
+    # Partes e Manutenção
+    "bateria para", "display para", "tela para", "frontal para", "placa para", 
+    "conector para", "flex para", "slot para", "gaveta chip", "lente", "adesivo",
+    
+    # Outros Eletrónicos (frequentemente com a tag "mini")
+    "projetor", "impressora", "ventilador", "teclado", "gamepad", "joystick", "drone", "maquete", "miniatura decorativa",
+    
+    # Brinquedos e Falsos
+    "brinquedo", "infantil", "musical infantil", "fake", "fictício", "ficticio", "de mentira"
+]
 
 def _numero_ptbr_float_amazon(valor: object) -> float | None:
     txt = normalizar_texto(valor).replace(" ", "")
