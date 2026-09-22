@@ -40,14 +40,17 @@ MODELOS_CONHECIDOS = {
 
 PADROES_FORA_ESCOPO_TITULO = [
     r"^\s*(capa|capinha|case|pelicula|vidro|protetor de tela)\b",
-    r"^\s*(carregador|cabo|fonte|adaptador|suporte|tripe)\b",
+    r"^\s*(carregador|cabo|fonte|adaptador|suporte|tripe|lente)\b", # Adicionado suporte, lente
     r"^\s*(bateria|display|tela|placa|conector|flex|gaveta|carcaca|tampa)\b",
     r"^\s*(fone|headset|earbud|auricular|caixa de som|microfone)\b",
     r"\b(capa|capinha|pelicula|carregador|bateria|display|tela)\s+para\s+(iphone|celular|smartphone|telefone)\b",
     r"\bsmartwatch\b",
     r"\brelogio inteligente\b",
     r"^\s*tablet\b",
-    r"^\s*(miniatura|maquete|boneco|brinquedo)\b",
+    # LINHAS NOVAS BASEADAS NO PDF (Foco em brinquedos e acessórios aleatórios):
+    r"\b(miniatura|maquete|boneco|brinquedo|toy|infantil|crianca|children)\b",
+    r"\b(adesivo|skin|cordao|cordinha|strap)\b",
+    r"\b(fone de ouvido|bluetooth headset)\b"
 ]
 
 ROTULOS_DIMENSAO = {
@@ -319,12 +322,14 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
 
     # 6. Se chegou aqui, a Anatel é NAO_INFORMADO (sem código) ou NAO_VERIFICADO (sem base)
     if not dimensoes_confiaveis:
-        if indicios["tem_indicios"] == "SIM":
+        # PONTO DE MELHORIA DO PDF: Evita classificar celulares de tamanho regular como suspeitos só pela falta de medidas.
+        # Agora exige que exista uma palavra forte de "mini/micro" para virar suspeito.
+        if indicios["evidencia_mini"]:
             resultado.classificacao = "SUSPEITO"
-            resultado.motivo_classificacao = "Há indícios de aparelho com telefonia, mas não foram localizadas dimensões corporais confiáveis."
+            resultado.motivo_classificacao = "Não possui dimensões informadas, mas o título/descrição indica fortemente ser um 'mini celular'."
         else:
             resultado.classificacao = "DESCARTADO"
-            resultado.motivo_classificacao = "Sem dimensões confiáveis e sem indícios suficientes de aparelho com telefonia."
+            resultado.motivo_classificacao = "Celular aparentemente regular (sem termos 'mini') e sem dimensões informadas."
         return resultado.para_dict()
 
     if indicios["tem_indicios"] != "SIM":
