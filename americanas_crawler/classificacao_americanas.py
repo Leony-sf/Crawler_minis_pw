@@ -15,7 +15,10 @@ TERMOS_IGNORADOS = [
     "chocolate", "biscoito", "oreo", "nestlé", "nestle", "lacta", "elma chips", 
     "pringles", "salgadinho", "fralda", "huggies", "sabão", "desinfetante", 
     "lysoform", "limpador", "pato gel", "cafeteira", "colchão", "emma", "wafer", 
-    "snack", "amendoim", "doce", "gift card", "tostitos", "batata", "lays", "brilhante"
+    "snack", "amendoim", "doce", "gift card", "tostitos", "batata", "lays", "brilhante",
+    "papel higiênico", "papel higienico", "chip", "pré-pago", 
+    "ferro de passar", "chaleira", "máquina de cortar", "maquina de cortar", 
+    "aparador", "eletrodoméstico", "liquidificador", "batedeira"
 ]
 
 @dataclass
