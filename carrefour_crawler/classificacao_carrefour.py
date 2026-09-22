@@ -10,6 +10,7 @@ TERMOS_TELEFONIA = [
     "telefone simples", "celular simples", "celular antigo", "tijolinho",
     "chamada", "ligações", "ligacoes", "realiza chamada", "discagem",
 ]
+
 TERMOS_INDICIO_FORTE_MINI = [
     "mini celular", "mini telefone", "mini mobile", "mini phone", "mini cellphone",
     "menor celular", "menor telefone", "smallest phone", "tiny phone", "micro celular",
@@ -18,12 +19,25 @@ TERMOS_INDICIO_FORTE_MINI = [
     "l8star", "gtstar", "bm70", "bm30", "bm10", "bm50", "k8 mini",
     "soyes xs", "soyes xs11", "melrose s9x",
 ]
+
 TERMOS_ACESSORIO = [
     "capa", "capinha", "case", "cover", "película", "pelicula", "vidro temperado",
     "carregador", "cabo usb", "fonte", "bateria", "tela para", "display para",
     "peça", "peca", "conector", "flex", "placa", "suporte",
     "fone de ouvido", "headphone", "headset", "adaptador",
 ]
+
+# NOVA LISTA: Termos fortes e irrelevantes encontrados na base do Carrefour
+TERMOS_TITULO_IRRELEVANTE = [
+    "projetor", "teclado", "ventilador", "ring light", "tripé", "tripe",
+    "impressora", "alicate", "toy phone", "bolsa", "cordão", "cordao",
+    "strap", "gimbal", "microfone", "karaoke", "suporte magnético",
+    "suporte magnetico", "suporte para", "suporte celular", "base suporte",
+    "carregador de celular", "carregador para celular", "carregador turbo",
+    "carregador de parede", "carregador 20w", "carregador mdm", "película para",
+    "pelicula para", "capinha para", "capa para"
+]
+
 TERMOS_PRODUTO_FORA_DO_ESCOPO = [
     "chocolate", "amendoim", "amêndoa", "amendoas", "biscoito", "bolacha",
     "leite", "lacta", "garoto", "nestlé", "nestle", "café", "cafe",
@@ -44,9 +58,14 @@ def classificar_produto(dados: Any, analise_dimensional: dict[str, Any], analise
     
     termos_fora = any(t in texto_focado for t in TERMOS_PRODUTO_FORA_DO_ESCOPO)
     eh_acessorio = any(t in titulo for t in TERMOS_ACESSORIO) and not any(t in titulo for t in ["chip", "gsm", "celular", "telefone"])
+    
+    # NOVA REGRA: Verifica a lista forte de produtos que burlavam a checagem anterior
+    eh_irrelevante = any(t in titulo for t in TERMOS_TITULO_IRRELEVANTE)
     indicio_mini = any(t in texto_focado for t in TERMOS_INDICIO_FORTE_MINI)
     
-    if termos_fora or eh_acessorio: return {"classificacao": "DESCARTADO", "motivo_classificacao": "Produto fora do escopo ou acessório."}
+    # Atualiza a condição de descarte incorporando os itens irrelevantes
+    if termos_fora or eh_acessorio or eh_irrelevante: 
+        return {"classificacao": "DESCARTADO", "motivo_classificacao": "Produto fora do escopo ou acessório."}
     
     dimensoes_confiaveis = analise_dimensional.get("dimensoes_confiaveis") == "SIM"
     dentro_limite = analise_dimensional.get("dentro_limite_dimensional") == "SIM"
