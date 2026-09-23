@@ -28,6 +28,8 @@ PADROES_FORA_ESCOPO = [
     r"^\s*(fone|headset|earbud|caixa de som)\b",
     r"^\s*(bateria|display|tela|placa|conector)\b",
     r"\bsmartwatch\b",
+    # Nova linha com as palavras-chave para descartar brinquedos e itens indevidos
+    r"\b(brinquedo|infantil|educativo|criança|crianca|crianças|criancas|kids|musical|quebra-cabeça|lâmpada|lampada)\b",
 ]
 
 def extrair_label_values(html: str, texto_extra: str = "") -> dict[str, str]:
@@ -73,7 +75,7 @@ def extrair_dados_html(html: str, url: str = "", texto_extra: str = "") -> dict[
         
     nome_comercial = _buscar_por_labels(pares, LABELS_NOME_COMERCIAL)
     if not nome_comercial:
-        nome_comercial = titulo # Fallback para checar o Nome Comercial no título da página
+        nome_comercial = titulo
         
     return {
         "url": url,
@@ -163,10 +165,32 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
         res["motivo_classificacao"] = f"Fora do escopo pelo título: {indicios['motivo_fora_escopo']}."
         return res
 
+    # NOVA REGRA: A Anatel agora tem prioridade total antes da validação dimensional
+    status_req = analise_anatel.get("situacao_requerimento_normalizada", "")
+    if status_req in {"CANCELADA", "SUSPENSA"}:
+        res["classificacao"] = "IRREGULAR"
+        res["motivo_classificacao"] = f"Homologação {status_req.lower()} na base Anatel."
+        return res
+
+    if anatel_ok:
+        res["classificacao"] = "REGULAR"
+        if not dim_conf:
+            res["motivo_classificacao"] = "Anatel em conformidade estrita com a base (dimensões ausentes)."
+        else:
+            res["motivo_classificacao"] = "Anatel em conformidade estrita com a base e dimensões verificadas."
+        return res
+
+    # Repasse da classificação para itens que necessitam revisão da Anatel
+    if sit_anatel == "NAO_CLASSIFICADO":
+        res["classificacao"] = "NAO_CLASSIFICADO"
+        res["motivo_classificacao"] = analise_anatel.get("motivo_anatel", "Dados insuficientes para concluir regularidade.")
+        return res
+
+    # Se a Anatel não estiver preenchida ou perfeitamente regular, voltamos à checagem de dimensões
     if not dim_conf:
         if indicios["tem_indicios"] == "SIM":
             res["classificacao"] = "SUSPEITO"
-            res["motivo_classificacao"] = "Indícios de telefonia, mas sem dimensões confiáveis."
+            res["motivo_classificacao"] = "Indícios de telefonia e Anatel pendente, mas sem dimensões confiáveis."
         else:
             res["motivo_classificacao"] = "Sem dimensões e sem indícios suficientes."
         return res
@@ -177,23 +201,6 @@ def classificar_produto(dados: dict[str, Any], analise_dimensional: dict[str, An
 
     if indicios["tem_indicios"] != "SIM":
         res["motivo_classificacao"] = "Dimensões reduzidas, mas sem indícios de celular."
-        return res
-
-    status_req = analise_anatel.get("situacao_requerimento_normalizada", "")
-    if status_req in {"CANCELADA", "SUSPENSA"}:
-        res["classificacao"] = "IRREGULAR"
-        res["motivo_classificacao"] = f"Homologação {status_req.lower()} na base Anatel."
-        return res
-
-    # Repasse da classificação para itens que necessitam revisão da Anatel
-    if sit_anatel == "NAO_CLASSIFICADO":
-        res["classificacao"] = "NAO_CLASSIFICADO"
-        res["motivo_classificacao"] = analise_anatel.get("motivo_anatel", "Dados insuficientes para concluir regularidade.")
-        return res
-
-    if anatel_ok:
-        res["classificacao"] = "REGULAR"
-        res["motivo_classificacao"] = "Dimensões no limite e Anatel em conformidade estrita com a base."
         return res
 
     res["classificacao"] = "IRREGULAR"
