@@ -89,17 +89,25 @@ MODELOS_CONHECIDOS = {
 # A detecção de acessórios é feita somente no título do anúncio.
 # Isso impede que textos de recomendações, kits ou seções da página façam
 # um telefone real ser descartado como "fone bluetooth".
+# A detecção de acessórios é feita somente no título do anúncio.
 PADROES_FORA_ESCOPO_TITULO = [
-    r"^\s*(capa|capinha|case|pelicula|vidro|protetor de tela)\b",
-    r"^\s*(carregador|cabo|fonte|adaptador|suporte|tripe)\b",
-    r"^\s*(bateria|display|tela|placa|conector|flex|gaveta|carcaca|tampa)\b",
-    r"^\s*(fone|headset|earbud|auricular|caixa de som|microfone)\b",
+    # Acessórios no início do título (agora aceita "Kit", "Lote", numerais, etc.)
+    r"^\s*(?:(?:kit|lote|pacote)\s+)?(?:de\s+)?(?:\d+\s+)?(capa|capinha|case|pelicula|vidro|protetor de tela)\b",
+    r"^\s*(?:(?:kit|lote|pacote)\s+)?(?:de\s+)?(?:\d+\s+)?(carregador|cabo|fonte|adaptador|suporte|tripe)\b",
+    r"^\s*(?:(?:kit|lote|pacote)\s+)?(?:de\s+)?(?:\d+\s+)?(bateria|display|tela|placa|conector|flex|gaveta|carcaca|tampa)\b",
+    r"^\s*(?:(?:kit|lote|pacote)\s+)?(?:de\s+)?(?:\d+\s+)?(fone|headset|earbud|auricular|caixa de som|microfone)\b",
+    r"^\s*(?:(?:kit|lote|pacote)\s+)?(?:de\s+)?(?:\d+\s+)?(miniatura|maquete|boneco|brinquedo)\b",
+    r"^\s*(?:(?:kit|lote|pacote)\s+)?(?:de\s+)?(?:\d+\s+)?tablet\b",
+    
+    # Brinquedos, jogos e maquetes em qualquer lugar do título
+    r"\b(brinquedo|aquaplay|mini game|jogo infantil|dummy|mockup|joguinho|prendas|de plastico|fake|falso)\b",
+    
+    # Acessórios genéricos explicitados por "para"
     r"\b(capa|capinha|pelicula|carregador|bateria|display|tela)\s+para\s+"
     r"(iphone|celular|smartphone|telefone)\b",
-    r"\bsmartwatch\b",
-    r"\brelogio inteligente\b",
-    r"^\s*tablet\b",
-    r"^\s*(miniatura|maquete|boneco|brinquedo)\b",
+    
+    # Termos gerais (smartwatches e áudio bluetooth) em qualquer lugar
+    r"\b(smartwatch|relogio inteligente|pulseira inteligente|fone de ouvido|caixa de som)\b",
 ]
 
 ROTULOS_DIMENSAO = {
@@ -638,7 +646,8 @@ def classificar_produto(
         return resultado.para_dict()
 
     if not dimensoes_confiaveis:
-        if indicios["tem_indicios"] == "SIM":
+        # Só classifica como suspeito se houver indício FORTE de mini celular
+        if indicios["evidencia_mini"]:
             resultado.classificacao = "SUSPEITO"
             status_req = analise_anatel.get(
                 "situacao_requerimento_normalizada"
@@ -650,15 +659,15 @@ def classificar_produto(
                     f"Homologação {status_req.lower()} na base Anatel."
                 )
             resultado.motivo_classificacao = (
-                "Há indícios de aparelho com telefonia, mas não foram "
-                "localizadas dimensões corporais confiáveis."
+                "Há fortes indícios de mini celular (evidência mini), "
+                "mas não foram localizadas dimensões corporais confiáveis."
                 + complemento_anatel
             )
         else:
             resultado.classificacao = "DESCARTADO"
             resultado.motivo_classificacao = (
-                "Sem dimensões confiáveis e sem indícios suficientes de "
-                "aparelho com telefonia."
+                "Sem dimensões confiáveis e sem evidências fortes de mini celular. "
+                "Aparelho descartado por ser considerado um celular regular."
             )
         return resultado.para_dict()
 
