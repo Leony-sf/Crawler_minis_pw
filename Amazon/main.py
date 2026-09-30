@@ -11,9 +11,9 @@ PROJECT_ROOT = CURRENT_DIR.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from amazon_crawler.base_anatel import carregar_base_anatel
-from amazon_crawler.crawler_playwright_amazon import rodar_playwright_amazon
-from amazon_crawler.utils import log, secao
+from Amazon.base_anatel import carregar_base_anatel
+from Amazon.crawler_playwright_amazon import rodar_playwright_amazon
+from Amazon.utils import log, secao
 
 def _ler_queries_txt(caminho: str | Path | None) -> list[str]:
     if not caminho:
