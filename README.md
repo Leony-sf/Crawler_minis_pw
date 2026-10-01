@@ -30,7 +30,9 @@ crawler_minis_pw/
 ├── Temu/                 # Módulo de integração para Temu
 ├── requirements.txt      # Dependências globais do projeto
 └── .gitignore            # Arquivos ignorados pelo versionamento
-Padrão Interno dos Módulos por Marketplace
+````
+
+## Padrão Interno dos Módulos por Marketplace
 Cada pasta de marketplace contém tipicamente os seguintes componentes:
 
 main_*.py ou main.py: Orquestrador de linha de comando (CLI) que recebe parâmetros de execução e aciona o fluxo.
@@ -47,14 +49,14 @@ buscar_*.txt: Arquivo de texto contendo as consultas de busca executadas pelo ro
 
 utils_*.py: Funções auxiliares de normalização de strings, gerenciamento de diretórios e salvamento.
 
-Tecnologias Utilizadas
+## Tecnologias Utilizadas
 Python 3.x: Linguagem base para toda a lógica de engenharia de dados e automação.
 
 Playwright: Motor moderno de automação de navegadores (headless ou conectado via CDP), escolhido por sua alta performance e estabilidade na manipulação de conteúdos dinâmicos (Single Page Applications).
 
 Pandas & PyArrow: Utilizados para manipulação de dados em memória e gravação colunar de alta performance em arquivos .parquet.
 
-Guia de Instalação e Execução
+## Guia de Instalação e Execução
 1. Pré-requisitos
 Certifique-se de ter o Python instalado e o Google Chrome configurado em seu ambiente. Instale as dependências globais listadas na raiz:
 
@@ -74,12 +76,22 @@ python Mercado_livre/main.py --txt Mercado_livre/buscar_mercadolivre.txt --limit
 Regras de Negócio e Classificação
 O sistema processa cada anúncio através de uma esteira rigorosa para evitar falsos positivos e garantir consistência estatística:
 
-Triagem de Escopo: Descarta automaticamente acessórios (capas, películas, fones) e itens fora do escopo de smartphones.
+## Triagem de Escopo: 
 
-Detecção de Disfarces e Produtos Irregulares: Valida títulos contra listas de termos suspeitos (ex.: disfarces de "mini celulares" como chaveiros ou MP3) e restrições de preço máximo (teto de R$ 300) antes da validação padrão.
+Descarta automaticamente acessórios (capas, películas, fones) e itens fora do escopo de smartphones.
 
-Cruzamento Anatel: Compara o código de homologação capturado com a base oficial, validando a correspondência exata de Marca, Modelo Técnico (Coluna M) e checando se o processo não está com a Homologação Suspensa.
+##Detecção de Disfarces e Produtos Irregulares: 
 
-Persistência Incremental: Os resultados são gravados instantaneamente em products.parquet e comments.parquet, acompanhados de capturas de tela (prints) organizadas em pastas de evidências (/regulares e /irregulares).
+Valida títulos contra listas de termos suspeitos (ex.: disfarces de "mini celulares" como chaveiros ou MP3) e restrições de preço máximo (teto de R$ 300) antes da validação padrão.
+
+## Cruzamento Anatel: 
+
+Compara o código de homologação capturado com a base oficial, validando a correspondência exata de Marca, Modelo Técnico (Coluna M) e checando se o processo não está com a Homologação Suspensa.
+
+## Persistência Incremental: 
+
+Os resultados são gravados instantaneamente em products.parquet e comments.parquet, acompanhados de capturas de tela (prints) organizadas em pastas de evidências (/regulares e /irregulares).
 Licença e Uso
+
+
 Projeto desenvolvido para fins de Supervisão de Mercado e Auditoria Técnica. Uso restrito aos operadores autorizados.
