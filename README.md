@@ -59,39 +59,39 @@ Pandas & PyArrow: Utilizados para manipulação de dados em memória e gravaçã
 ## Guia de Instalação e Execução
 1. Pré-requisitos
 Certifique-se de ter o Python instalado e o Google Chrome configurado em seu ambiente. Instale as dependências globais listadas na raiz:
-
-Bash
+```text
 pip install -r requirements.txt
 playwright install
+```
 2. Execução via Sessão Real do Chrome (CDP)
 Para mitigar bloqueios e CAPTCHAs, recomenda-se iniciar o navegador localmente em uma porta de depuração (CDP 9225), permitindo que o Playwright aproveite os cookies e o perfil humano:
-
-PowerShell
+```text
 & "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9225 --user-data-dir="$PWD\chrome_profiles\sessao_real"
+```
 3. Rodando um Robô (Exemplo: Mercado Livre)
 Navegue até o diretório do marketplace desejado ou execute a partir da raiz apontando para os parâmetros do script:
-
-Bash
+```text
 python Mercado_livre/main.py --txt Mercado_livre/buscar_mercadolivre.txt --limit 50 --base "caminho/para/Produtos_Homologados_Anatel.csv"
-Regras de Negócio e Classificação
+```
+## Regras de Negócio e Classificação
 O sistema processa cada anúncio através de uma esteira rigorosa para evitar falsos positivos e garantir consistência estatística:
 
-## Triagem de Escopo: 
+### Triagem de Escopo: 
 
 Descarta automaticamente acessórios (capas, películas, fones) e itens fora do escopo de smartphones.
 
-##Detecção de Disfarces e Produtos Irregulares: 
+### Detecção de Disfarces e Produtos Irregulares: 
 
 Valida títulos contra listas de termos suspeitos (ex.: disfarces de "mini celulares" como chaveiros ou MP3) e restrições de preço máximo (teto de R$ 300) antes da validação padrão.
 
-## Cruzamento Anatel: 
+### Cruzamento Anatel: 
 
 Compara o código de homologação capturado com a base oficial, validando a correspondência exata de Marca, Modelo Técnico (Coluna M) e checando se o processo não está com a Homologação Suspensa.
 
-## Persistência Incremental: 
+### Persistência Incremental: 
 
 Os resultados são gravados instantaneamente em products.parquet e comments.parquet, acompanhados de capturas de tela (prints) organizadas em pastas de evidências (/regulares e /irregulares).
 Licença e Uso
 
-
+```text
 Projeto desenvolvido para fins de Supervisão de Mercado e Auditoria Técnica. Uso restrito aos operadores autorizados.
