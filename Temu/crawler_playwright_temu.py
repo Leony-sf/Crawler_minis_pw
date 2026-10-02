@@ -41,37 +41,49 @@ def _aplicar_camuflagem(page: Page) -> None:
         pass
 
 
-def _pesquisar_como_humano(page: Page, query: str) -> None:
-    """Abre a home da Temu e digita na barra de pesquisa como um usuário real."""
+def _pesquisar_como_humano(page: Page, query: str) -> bool:
     print("Navegando para a home da Temu...")
     page.goto("https://www.temu.com/br/", wait_until="domcontentloaded", timeout=45000)
     page.wait_for_timeout(3000)
     fechar_modais_iniciais(page)
 
-    # --- PAUSA MANUAL ---
     secao("Pausa manual")
     print("A home da Temu foi aberta no Chrome.")
     print("Faça login ou resolva qualquer CAPTCHA se necessário.")
     input("Quando estiver livre na página inicial, clique aqui no terminal e pressione ENTER para o robô pesquisar... ")
-    # --------------------
 
-    print(f"Digitando a busca por: '{query}'...")
+    print(f"A digitar a busca por: '{query}'...")
     try:
-        # Seletores comuns da barra de pesquisa da Temu
-        seletor_input = "input[aria-label*='Pesquisar'], input[placeholder*='Pesquisar'], input[type='text']"
-        page.locator(seletor_input).first.click(timeout=3000)
+        seletores = [
+            "input[type='search']",
+            "input[id*='search']",
+            "input[name*='search']",
+            "input[aria-label*='earch']", 
+            "input[aria-label*='esquisa']"
+        ]
+        
+        input_locator = None
+        for sel in seletores:
+            if page.locator(sel).count() > 0 and page.locator(sel).first.is_visible():
+                input_locator = page.locator(sel).first
+                break
+                
+        if not input_locator:
+            input_locator = page.locator("input[type='text']").first
+
+        input_locator.click(timeout=5000)
         page.wait_for_timeout(500)
         
-        # Digita com intervalo humano entre as letras
         page.keyboard.type(query, delay=120)
         page.wait_for_timeout(800)
         page.keyboard.press("Enter")
         
-        # Aguarda a listagem de resultados carregar
         page.wait_for_timeout(5000)
         fechar_modais_iniciais(page)
+        return True
     except Exception as e:
-        log("busca", f"Erro ao tentar digitar na barra de pesquisa: {e}", nivel="AVISO")
+        log("busca", f"Erro ao tentar encontrar ou digitar na barra de pesquisa: {e}", nivel="ERRO")
+        return False
 
 
 def _coletar_links_scroll_infinito(page: Page, max_scrolls: int = 15) -> list[str]:
@@ -83,7 +95,14 @@ def _coletar_links_scroll_infinito(page: Page, max_scrolls: int = 15) -> list[st
         if (!href.includes('temu.com')) continue;
         
         const textoAncora = (ancora.innerText || '').toLowerCase();
-        const lixo = ['capa', 'pelicula', 'tampão', 'tampao', 'suporte', 'cabo', 'carregador', 'cordão', 'cordao', 'pulseira'];
+        
+        const lixo = [
+            'capa', 'pelicula', 'tampão', 'tampao', 'suporte', 'cabo', 'carregador', 
+            'cordão', 'cordao', 'pulseira', 'case', 'filtro', 'pó', 'po', 'pendente', 
+            'pingente', 'flor', 'laço', 'laco', 'tampa', 'acessorio', 'telemóvel', 
+            'telemovel', 'protetor', 'corrente', 'berloque'
+        ];
+        
         const contemLixo = lixo.some(termo => textoAncora.includes(termo) || href.toLowerCase().includes(termo));
 
         const pareceProduto = href.includes('-g-') || href.includes('goods.html') || href.includes('goods_id');
@@ -131,30 +150,50 @@ def rodar_playwright_temu(
         
         _aplicar_camuflagem(pagina_busca)
         
-        # Executa a pesquisa simulando o clique e digitação na home
-        _pesquisar_como_humano(pagina_busca, query)
+        sucesso = _pesquisar_como_humano(pagina_busca, query)
         
-        log("busca", f"Iniciando coleta para a listagem gerada.")
+        if not sucesso:
+            log("falha", "A execução foi interrompida porque a pesquisa falhou.", nivel="ERRO")
+            return
+            
+        log("busca", f"Iniciando recolha para a listagem gerada.")
         links = _coletar_links_scroll_infinito(pagina_busca)
         log("listagem", f"Encontrados {len(links)} anúncios válidos.")
 
         total_visitados = 0
+        url_pesquisa_atual = pagina_busca.url
         
         for link in links:
             if limite > 0 and total_visitados >= limite:
                 break
                 
+            log("acesso", f"A abrir o link: {link}")
+            
             pagina_produto = contexto.new_page()
             _aplicar_camuflagem(pagina_produto)
             
             try:
-                pagina_produto.goto(link, wait_until="domcontentloaded")
-                pagina_produto.wait_for_timeout(2500)
+                pagina_produto.goto(link, referer=url_pesquisa_atual, wait_until="domcontentloaded", timeout=45000)
+                pagina_produto.wait_for_timeout(3000)
                 
+                try:
+                    pagina_produto.mouse.wheel(0, 800)
+                    pagina_produto.wait_for_timeout(1500)
+                except Exception:
+                    pass
+                
+                # --- PAUSA PARA INSPEÇÃO ---
+                print("\n" + "="*60)
+                print(f"🔗 LINK DO PRODUTO: {link}")
+                print("👀 Olhe para a janela do Chrome de depuração agora!")
+                input("Pressione ENTER após verificar a página para o robô extrair os dados... ")
+                print("="*60 + "\n")
+                # ---------------------------
+
                 dados = extrair_produto_temu(pagina_produto)
                 
                 if not dados:
-                    log("produto", "Item esgotado ou bloqueado. Pulando...", nivel="AVISO")
+                    log("produto", "O extrator considerou o item esgotado ou bloqueado. A saltar...", nivel="AVISO")
                     continue
 
                 momento = datetime.now().astimezone()
