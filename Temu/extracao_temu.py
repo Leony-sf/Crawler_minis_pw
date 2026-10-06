@@ -14,7 +14,8 @@ def fechar_modais_iniciais(page: Page) -> None:
         "img[alt='close']",
         ".close-btn",
         "[aria-label='Close']",
-        "svg.coupon-close"
+        "svg.coupon-close",
+        ".window-close"
     ]
     for seletor in seletores_fechar:
         try:
@@ -26,8 +27,18 @@ def fechar_modais_iniciais(page: Page) -> None:
             continue
 
 
+def rolar_pagina_para_carregar(page: Page) -> None:
+    """Rola a página para baixo para forçar o carregamento de elementos (Lazy Loading)."""
+    try:
+        for _ in range(3):
+            page.evaluate("window.scrollBy(0, 800)")
+            page.wait_for_timeout(1000)
+    except Exception:
+        pass
+
+
 def expandir_especificacoes(page: Page) -> None:
-    textos = ["Ver mais", "Especificações", "Detalhes", "See more", "Details"]
+    textos = ["Ver mais", "Especificações", "Detalhes", "See more", "Details", "Mostrar mais"]
     for texto in textos:
         try:
             btn = page.get_by_text(texto, exact=False).first
@@ -46,16 +57,31 @@ def coletar_atributos_temu(page: Page) -> dict[str, str]:
       const saida = {};
       const limpar = (v) => (v || '').replace(/\s+/g, ' ').trim();
       
-      const elementos = document.querySelectorAll('.product-spec-item, li, tr');
+      // Tentativa 1: Estrutura clássica de li/tr com dois pontos (normais ou asiáticos)
+      const elementos = document.querySelectorAll('.product-spec-item, li, tr, .spec-item');
       for (const el of elementos) {
-        const partes = el.innerText.split(':');
+        const partes = el.innerText.split(/[:：]/); 
         if (partes.length >= 2) {
             const chave = limpar(partes[0]);
             const valor = limpar(partes.slice(1).join(':'));
-            if (chave && valor) {
+            if (chave && valor && chave.length < 50) { 
                 saida[chave] = valor;
             }
         }
+      }
+
+      // Tentativa 2: Estrutura de spans/divs lado a lado (Key / Value)
+      const spans = document.querySelectorAll('span, div');
+      for (let i = 0; i < spans.length - 1; i++) {
+          const el = spans[i];
+          const nextEl = spans[i+1];
+          if (el.innerText && (el.innerText.endsWith(':') || el.innerText.endsWith('：'))) {
+              const chave = limpar(el.innerText.replace(/[:：]/g, ''));
+              const valor = limpar(nextEl.innerText);
+              if (chave && valor && chave.length < 50) {
+                  saida[chave] = valor;
+              }
+          }
       }
       return saida;
     }
@@ -76,6 +102,9 @@ def coletar_atributos_temu(page: Page) -> dict[str, str]:
 def extrair_produto_temu(page: Page) -> dict[str, Any] | None:
     fechar_modais_iniciais(page)
     
+    # Rola a página antes de extrair para garantir que a Temu carregue as especificações
+    rolar_pagina_para_carregar(page)
+    
     texto_pagina = ""
     try:
         texto_pagina = page.locator("body").inner_text(timeout=4000)
@@ -83,15 +112,23 @@ def extrair_produto_temu(page: Page) -> dict[str, Any] | None:
         pass
 
     # Se o item estiver esgotado, a Temu exibe essa mensagem na página
-    if "está esgotado" in texto_pagina or "is sold out" in texto_pagina:
+    if "está esgotado" in texto_pagina.lower() or "is sold out" in texto_pagina.lower():
         return None
 
     expandir_especificacoes(page)
+    
+    # Atualiza o texto da página caso o 'Ver mais' tenha revelado algo novo
+    try:
+        texto_pagina = page.locator("body").inner_text(timeout=4000)
+    except Exception:
+        pass
+        
     atributos = coletar_atributos_temu(page)
     
     titulo = ""
     try:
-        titulo = page.locator("h1").first.inner_text(timeout=2000).strip()
+        # Fallback para classes de título caso o h1 não seja encontrado
+        titulo = page.locator("h1, [class*='title'], [class*='goods-name']").first.inner_text(timeout=2000).strip()
     except Exception:
         pass
 
@@ -104,7 +141,7 @@ def extrair_produto_temu(page: Page) -> dict[str, Any] | None:
     marca = atributos.get("brand", atributos.get("marca", ""))
     modelo = atributos.get("model", atributos.get("modelo", ""))
     
-    codigo_anatel = "" 
+    codigo_anatel = atributos.get("anatel", "") 
 
     return {
         "url": page.url,
@@ -117,7 +154,7 @@ def extrair_produto_temu(page: Page) -> dict[str, Any] | None:
         "modelo_alfanumerico": "",
         "numero_modelo": modelo,
         "codigo_anatel_principal": codigo_anatel,
-        "descricao": texto_pagina[:1000], 
+        "descricao": texto_pagina[:2000], 
         "texto_pagina": texto_pagina,
         "atributos": atributos,
         "comentarios": [] 
