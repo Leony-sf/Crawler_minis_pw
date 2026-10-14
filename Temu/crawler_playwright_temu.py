@@ -135,13 +135,12 @@ def _coletar_links_scroll_infinito(page: Page, max_scrolls: int = 15) -> list[st
     return list(links_totais)
 
 
-def rodar_playwright_temu(
-    query: str,
-    limite: int = 0,
-    base_anatel: BaseAnatel | None = None,
-    porta_chrome: int = 9225,
-) -> None:
-    pasta_saida = criar_pastas_saida()
+def rodar_playwright_temu(query: str, limite: int = 0, base_anatel: BaseAnatel | None = None, porta_chrome: int = 9225) -> None:
+    # Cria o nome dinâmico com a data e hora atual
+    nome_pasta = datetime.now().strftime("Saidas_temu_%d-%m_%H-%M")
+    
+    # Passa esse nome para a função de criar pastas
+    pasta_saida = criar_pastas_saida(base=nome_pasta)
     produtos = []
     
     with sync_playwright() as p:
