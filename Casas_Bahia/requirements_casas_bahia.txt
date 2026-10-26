@@ -1,9 +1,0 @@
-playwright
-pandas
-pyarrow
-openpyxl
-beautifulsoup4
-lxml
-requests
-tqdm
-python-dotenv
