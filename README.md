@@ -1,10 +1,10 @@
-# Crawler de Marketplaces & Validador ANATEL 📱🛒
+# Crawler de Marketplaces & Validador ANATEL
 
 Sistema automatizado para extração, classificação e validação de anúncios de telefonia em múltiplos marketplaces, com verificação de homologação junto à base oficial da ANATEL e exportação compatível com dashboards do Qlik.
 
 ---
 
-## 📌 Visão Geral do Sistema
+## Visão Geral do Sistema
 
 O projeto coleta dados de anúncios em **10 marketplaces** distintos e realiza um pipeline completo de tratamento de dados:
 1. **Extração:** Coleta de títulos, preços, vendedores, URLs e códigos de homologação via Playwright/Scrapers.
@@ -14,7 +14,7 @@ O projeto coleta dados de anúncios em **10 marketplaces** distintos e realiza u
 
 ---
 
-## 📂 Estrutura do Repositório
+## Estrutura do Repositório
 
 ```text
 ├── core/                           # Módulo Central Compartilhado
@@ -42,7 +42,7 @@ O projeto coleta dados de anúncios em **10 marketplaces** distintos e realiza u
 
 ---
 
-## 🛠️ Pré-requisitos e Instalação
+## Pré-requisitos e Instalação
 
 ### 1. Requisitos de Ambiente
 * **Python 3.9** ou superior
@@ -66,7 +66,7 @@ playwright install
 
 ---
 
-## 🚀 Como Executar
+## Como Executar
 
 ### 1. Atualizar a Base Oficial da ANATEL
 Antes de iniciar as coletas, execute o script para baixar ou atualizar o arquivo com os dados abertos oficiais da ANATEL:
@@ -105,7 +105,7 @@ O script roda uma triagem rápida (3 a 5 anúncios) com saída formatada em temp
 
 ---
 
-## 📊 Formato dos Dados e Integração com Qlik
+## Formato dos Dados e Integração com Qlik
 
 Todos os dados exportados seguem uma estrutura fixa de colunas garantindo a compatibilidade total com a carga de dados no **Qlik Dashboard**:
 
@@ -124,7 +124,7 @@ Todos os dados exportados seguem uma estrutura fixa de colunas garantindo a comp
 
 ---
 
-## 🔧 Módulo Central (`core/`)
+## Módulo Central (`core/`)
 
 * **`base_anatel.py`:** 
   * `AnatelValidator`: Classe responsável pelo carregamento em memória da base oficial e pela validação dos códigos.
